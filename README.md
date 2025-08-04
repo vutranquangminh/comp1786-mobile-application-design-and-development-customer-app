@@ -1,5 +1,198 @@
 # Yoga Customer App
 
+A React Native yoga app with Firebase Firestore integration for managing courses and user data.
+
+## Features
+
+- **Firebase Firestore Integration**: Real-time database for courses and user data
+- **Authentication**: User sign-up and sign-in functionality
+- **Course Management**: Browse, add, update, and delete yoga courses
+- **Modern UI**: Beautiful, responsive design with smooth animations
+- **Cross-platform**: Works on iOS, Android, and Web
+
+## Firebase Setup
+
+This app is configured to use Firebase Firestore with the following services:
+- **Firestore Database**: For storing course and user data
+- **Authentication**: For user management
+- **Real-time updates**: Automatic data synchronization
+
+### Configuration
+
+The Firebase configuration is located in `config/firebase.ts` and includes:
+- Firestore database connection
+- Authentication setup
+- Helper functions for CRUD operations
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- Expo CLI
+- Firebase project with Firestore enabled
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd yogacustomerapp
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Seed the database with sample data:
+```bash
+npm run seed-firestore
+```
+
+4. Start the development server:
+```bash
+npm start
+```
+
+## Database Structure
+
+### Collections
+
+#### `courses`
+Stores yoga course information:
+```typescript
+{
+  id: string;
+  title: string;
+  instructor: string;
+  duration: string;
+  level: string;
+  price: number;
+  description: string;
+  createdAt: Date;
+}
+```
+
+## Usage
+
+### Firestore Operations
+
+The app provides custom hooks for easy Firestore operations:
+
+#### `useFirestore()` Hook
+```typescript
+const { 
+  loading, 
+  error, 
+  getCollection, 
+  addDocument, 
+  updateDocument, 
+  deleteDocument,
+  queryDocuments 
+} = useFirestore();
+
+// Get all courses
+const courses = await getCollection('courses');
+
+// Add a new course
+const courseId = await addDocument('courses', courseData);
+
+// Update a course
+await updateDocument('courses', courseId, updatedData);
+
+// Delete a course
+await deleteDocument('courses', courseId);
+
+// Query courses with filters
+const filteredCourses = await queryDocuments('courses', [
+  { field: 'level', operator: '==', value: 'Beginner' }
+], 'createdAt', 10);
+```
+
+#### `useAuth()` Hook
+```typescript
+const { 
+  user, 
+  loading, 
+  signUp, 
+  signIn, 
+  signOut 
+} = useAuth();
+
+// Sign up
+await signUp(email, password);
+
+// Sign in
+await signIn(email, password);
+
+// Sign out
+await signOut();
+```
+
+### Example Component
+
+See `components/FirestoreExample.tsx` for a complete example of how to use Firestore operations in your components.
+
+## Available Scripts
+
+- `npm start` - Start the Expo development server
+- `npm run android` - Start on Android
+- `npm run ios` - Start on iOS
+- `npm run web` - Start on Web
+- `npm run seed-firestore` - Seed the database with sample data
+- `npm run reset-project` - Reset the project to initial state
+
+## Project Structure
+
+```
+yogacustomerapp/
+├── config/
+│   └── firebase.ts          # Firebase configuration and helpers
+├── hooks/
+│   ├── useFirestore.ts      # Firestore custom hook
+│   └── useColorScheme.ts    # Theme hook
+├── components/
+│   ├── FirestoreExample.tsx # Example Firestore usage
+│   └── ...                  # Other components
+├── screens/
+│   ├── cccCoursesScreen.tsx    # Updated to use Firestore
+│   └── ...                  # Other screens
+└── scripts/
+    └── seedFirestore.js     # Database seeding script
+```
+
+## Security Rules
+
+Make sure to set up proper Firestore security rules in your Firebase console:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
 A React Native application built with Expo that provides a comprehensive yoga course platform with user authentication and course management.
 
 ## Features

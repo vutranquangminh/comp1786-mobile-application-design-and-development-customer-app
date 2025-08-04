@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
 import { Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,7 +15,23 @@ export type MainTabParamList = {
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const MainTabNavigator: React.FC = () => {
+type RootStackParamList = {
+  Welcome: undefined;
+  Login: undefined;
+  SignUp: undefined;
+  MainTabs: undefined;
+  CourseDetail: { courseId: string };
+  Buy: { course: any };
+  TestFirestore: undefined;
+};
+
+type MainTabNavigationProp = StackNavigationProp<RootStackParamList, 'MainTabs'>;
+
+interface Props {
+  navigation: MainTabNavigationProp;
+}
+
+const MainTabNavigator: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   
   return (
@@ -54,7 +71,7 @@ const MainTabNavigator: React.FC = () => {
     >
       <Tab.Screen 
         name="Home" 
-        component={HomeScreen}
+        component={(props) => <HomeScreen {...props} navigation={navigation} />}
         options={{
           title: 'Home',
         }}

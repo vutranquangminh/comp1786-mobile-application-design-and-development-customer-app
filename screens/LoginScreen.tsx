@@ -1,6 +1,7 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -12,6 +13,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../hooks/useFirestore';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -29,18 +31,35 @@ interface Props {
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { signIn, loading, error } = useAuth();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    // Simple validation - in a real app, you'd validate against a backend
-    if (email === 'user@example.com' && password === 'password') {
+    try {
+      console.log('🔐 LoginScreen: Starting login for:', email);
+      console.log('🔐 LoginScreen: Password provided:', password ? 'Yes' : 'No');
+      
+      const userCredential = await signIn(email, password);
+      console.log('✅ LoginScreen: Login successful!');
+      console.log('✅ LoginScreen: User credential details:');
+      console.log('   - User ID:', userCredential.Id);
+      console.log('   - User Name:', userCredential.Name);
+      console.log('   - User Email:', userCredential.Email);
+      console.log('   - User Phone:', userCredential.PhoneNumber);
+      console.log('   - User DOB:', userCredential.DateOfBirth);
+      console.log('   - User Created:', userCredential.DateCreated);
+      console.log('✅ LoginScreen: Full user credential JSON:', JSON.stringify(userCredential, null, 2));
+      
       // Navigate to main tabs after successful login
+      console.log('🚀 LoginScreen: Navigating to MainTabs');
       navigation.replace('MainTabs');
-    } else {
+    } catch (err) {
+      console.error('❌ LoginScreen: Login failed:', err);
+      console.error('❌ LoginScreen: Error details:', JSON.stringify(err, null, 2));
       Alert.alert('Error', 'Invalid email or password');
     }
   };
@@ -90,9 +109,21 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               />
             </View>
 
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-              <Text style={styles.loginButtonText}>Sign In</Text>
+            <TouchableOpacity 
+              style={[styles.loginButton, loading && styles.loginButtonDisabled]} 
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#ffffff" size="small" />
+              ) : (
+                <Text style={styles.loginButtonText}>Sign In</Text>
+              )}
             </TouchableOpacity>
+
+            {error && (
+              <Text style={styles.errorText}>{error}</Text>
+            )}
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account? </Text>
@@ -183,6 +214,15 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: '600',
+  },
+  loginButtonDisabled: {
+    backgroundColor: '#95a5a6',
+  },
+  errorText: {
+    color: '#e74c3c',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 10,
   },
   footer: {
     flexDirection: 'row',

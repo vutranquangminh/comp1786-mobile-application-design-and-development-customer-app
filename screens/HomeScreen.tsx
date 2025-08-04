@@ -1,96 +1,234 @@
-import React, { useState } from 'react';
+import { StackNavigationProp } from '@react-navigation/stack';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Alert,
+    ActivityIndicator,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CourseCard, { Course } from '../components/CourseCard';
+import { firestoreHelpers } from '../config/firebase';
+import { useAuth, useFirestore } from '../hooks/useFirestore';
 
-// Mock data for unpurchased courses
-const mockUnpurchasedCourses: Course[] = [
-  {
-    id: '1',
-    title: 'Beginner Yoga Flow',
-    instructor: 'Sarah Johnson',
-    duration: '45 min',
-    level: 'Beginner',
-    price: 29.99,
-    description: 'Perfect for beginners looking to start their yoga journey with gentle poses and breathing techniques.',
-  },
-  {
-    id: '2',
-    title: 'Power Vinyasa Flow',
-    instructor: 'Michael Chen',
-    duration: '60 min',
-    level: 'Intermediate',
-    price: 39.99,
-    description: 'Dynamic flow sequence that builds strength and flexibility through continuous movement.',
-  },
-  {
-    id: '3',
-    title: 'Restorative Yoga',
-    instructor: 'Emma Davis',
-    duration: '30 min',
-    level: 'All Levels',
-    price: 24.99,
-    description: 'Deep relaxation practice using props to support the body in gentle, healing poses.',
-  },
-  {
-    id: '4',
-    title: 'Advanced Ashtanga',
-    instructor: 'David Rodriguez',
-    duration: '90 min',
-    level: 'Advanced',
-    price: 49.99,
-    description: 'Traditional Ashtanga sequence for experienced practitioners seeking a challenging practice.',
-  },
-];
+type RootStackParamList = {
+  Welcome: undefined;
+  Login: undefined;
+  SignUp: undefined;
+  MainTabs: undefined;
+  CourseDetail: { courseId: string };
+  Buy: { course: any };
+  TestFirestore: undefined;
+};
 
-const HomeScreen: React.FC = () => {
-  const [courses, setCourses] = useState<Course[]>(mockUnpurchasedCourses);
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'MainTabs'>;
 
-  const handleBuyPress = (course: Course) => {
-    Alert.alert(
-      'Purchase Course',
-      `Would you like to purchase "${course.title}" for $${course.price}?`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Buy Now',
-          onPress: () => {
-            // Remove the course from the list after purchase
-            setCourses(prevCourses => 
-              prevCourses.filter(c => c.id !== course.id)
-            );
-            Alert.alert('Success', 'Course purchased successfully!');
-          },
-        },
-      ]
+interface Props {
+  navigation: HomeScreenNavigationProp;
+}
+
+const HomeScreen: React.FC<Props> = ({ navigation }) => {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { getCollection, loading: firestoreLoading, error } = useFirestore();
+  const { user } = useAuth();
+
+  // Function to get teacher name by TeacherId
+  const getTeacherName = async (teacherId: number): Promise<string> => {
+    try {
+      const teachers = await firestoreHelpers.queryDocuments('teachers', [
+        { field: 'Id', operator: '==', value: teacherId }
+      ]);
+      
+      if (teachers.length > 0) {
+        return teachers[0].Name;
+      } else {
+        return `Teacher ${teacherId}`;
+      }
+    } catch (error) {
+      console.error('💥 Error getting teacher name:', error);
+      return `Teacher ${teacherId}`;
+    }
+  };
+
+  // Function to filter courses based on search query
+  const filterCourses = (courses: Course[], query: string) => {
+    if (!query.trim()) {
+      return courses;
+    }
+    
+    const lowercaseQuery = query.toLowerCase();
+    return courses.filter(course => 
+      course.title.toLowerCase().includes(lowercaseQuery) ||
+      course.instructor.toLowerCase().includes(lowercaseQuery) ||
+      course.description.toLowerCase().includes(lowercaseQuery) ||
+      course.level.toLowerCase().includes(lowercaseQuery)
     );
   };
+
+  const loadCourses = async () => {
+    try {
+      setLoading(true);
+      // Get current user ID from auth state
+      const currentUserId = user?.Id;
+      
+      if (!currentUserId) {
+        // For testing purposes, show all courses if no user is logged in
+        const allCourses = await getCollection('courses');
+        const transformedCourses: Course[] = await Promise.all(
+          allCourses.map(async (course: any) => {
+            const teacherName = await getTeacherName(course.TeacherId);
+            return {
+              id: course.Id.toString(),
+              title: course.Name,
+              instructor: teacherName,
+              duration: `${course.Duration} min`,
+              level: course.Category || 'All Levels',
+              price: parseFloat(course.Price.replace('$', '')) || 0,
+              description: course.Description,
+            };
+          })
+        );
+        setCourses(transformedCourses);
+        setLoading(false);
+        return;
+      }
+      
+      // Get all courses
+      const allCourses = await getCollection('courses');
+      
+      // Get purchased courses for current user
+      const purchasedCourses = await firestoreHelpers.queryDocuments('course_customer_crossrefs', [
+        { field: 'customerId', operator: '==', value: currentUserId }
+      ]);
+      
+      // Get purchased course IDs
+      const purchasedCourseIds = purchasedCourses.map((purchase: any) => purchase.courseId);
+      
+      // Filter out purchased courses
+      const unpurchasedCourses = allCourses.filter((course: any) => 
+        !purchasedCourseIds.includes(course.Id)
+      );
+      
+      // Transform Firestore data to match Course interface
+      const transformedCourses: Course[] = await Promise.all(
+        unpurchasedCourses.map(async (course: any) => {
+          const teacherName = await getTeacherName(course.TeacherId);
+          return {
+            id: course.Id.toString(),
+            title: course.Name,
+            instructor: teacherName,
+            duration: `${course.Duration} min`,
+            level: course.Category || 'All Levels',
+            price: parseFloat(course.Price.replace('$', '')) || 0,
+            description: course.Description,
+          };
+        })
+      );
+      
+      setCourses(transformedCourses);
+      setFilteredCourses(transformedCourses);
+    } catch (error) {
+      // Handle error silently
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadCourses();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  // Reload courses when user changes
+  useEffect(() => {
+    if (user) {
+      loadCourses();
+    }
+  }, [user]);
+
+  // Filter courses when search query changes
+  useEffect(() => {
+    const filtered = filterCourses(courses, searchQuery);
+    setFilteredCourses(filtered);
+  }, [searchQuery, courses]);
+
+  const handleBuyPress = (course: Course) => {
+    navigation.navigate('Buy', { course });
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Discover Courses</Text>
+          <Text style={styles.subtitle}>
+            Explore our collection of yoga courses
+          </Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#27ae60" />
+          <Text style={styles.loadingText}>Loading courses...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Discover Courses</Text>
         <Text style={styles.subtitle}>
-          Explore our collection of yoga courses
+          Available courses you can purchase
         </Text>
+        
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search courses, instructors, or topics..."
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              style={styles.clearButton}
+              onPress={() => setSearchQuery('')}
+            >
+              <Text style={styles.clearButtonText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        {error && (
+          <Text style={styles.errorText}>Error: {error}</Text>
+        )}
       </View>
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
-        {courses.length > 0 ? (
-          courses.map((course) => (
+        {filteredCourses.length > 0 ? (
+          filteredCourses.map((course) => (
             <CourseCard
               key={course.id}
               course={course}
@@ -98,6 +236,14 @@ const HomeScreen: React.FC = () => {
               onBuyPress={handleBuyPress}
             />
           ))
+        ) : searchQuery.length > 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateEmoji}>🔍</Text>
+            <Text style={styles.emptyStateTitle}>No Results Found</Text>
+            <Text style={styles.emptyStateText}>
+              Try adjusting your search terms or browse all available courses.
+            </Text>
+          </View>
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateEmoji}>🎉</Text>
@@ -134,6 +280,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#7f8c8d',
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    marginTop: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#e1e8ed',
+  },
+  searchInput: {
+    flex: 1,
+    height: 44,
+    fontSize: 16,
+    color: '#2c3e50',
+    paddingVertical: 0,
+  },
+  clearButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  clearButtonText: {
+    fontSize: 18,
+    color: '#7f8c8d',
+    fontWeight: 'bold',
+  },
   scrollView: {
     flex: 1,
   },
@@ -164,6 +337,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#7f8c8d',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#e74c3c',
+    marginTop: 8,
   },
 });
 

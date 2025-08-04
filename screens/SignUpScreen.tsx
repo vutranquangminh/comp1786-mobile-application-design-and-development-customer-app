@@ -10,8 +10,11 @@ import {
     TextInput,
     TouchableOpacity,
     View,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../hooks/useFirestore';
+import { addDocument } from '../config/firebase';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -33,8 +36,9 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { signUp, loading, error } = useAuth();
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (!fullName || !email || !phone || !dateOfBirth || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -50,17 +54,30 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    // In a real app, you'd send this data to your backend
-    Alert.alert(
-      'Success',
-      'Account created successfully!',
-      [
-        {
-          text: 'OK',
-          onPress: () => navigation.replace('MainTabs'),
-        },
-      ]
-    );
+    try {
+      // Create user account with all data
+      const userData = {
+        fullName,
+        email,
+        phone,
+        dateOfBirth,
+      };
+      
+      const userCredential = await signUp(email, password, userData);
+      
+      Alert.alert(
+        'Success',
+        'Account created successfully!',
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.replace('MainTabs'),
+          },
+        ]
+      );
+    } catch (err) {
+      Alert.alert('Error', 'Failed to create account. Please try again.');
+    }
   };
 
   return (
@@ -154,9 +171,21 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               />
             </View>
 
-            <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-              <Text style={styles.signUpButtonText}>Create Account</Text>
+            <TouchableOpacity 
+              style={[styles.signUpButton, loading && styles.signUpButtonDisabled]} 
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#ffffff" size="small" />
+              ) : (
+                <Text style={styles.signUpButtonText}>Create Account</Text>
+              )}
             </TouchableOpacity>
+
+            {error && (
+              <Text style={styles.errorText}>{error}</Text>
+            )}
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>Already have an account? </Text>
@@ -247,6 +276,15 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: '600',
+  },
+  signUpButtonDisabled: {
+    backgroundColor: '#95a5a6',
+  },
+  errorText: {
+    color: '#e74c3c',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 10,
   },
   footer: {
     flexDirection: 'row',

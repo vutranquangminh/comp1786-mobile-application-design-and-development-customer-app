@@ -22,12 +22,14 @@ interface CourseCardProps {
   course: Course;
   showBuyButton?: boolean;
   onBuyPress?: (course: Course) => void;
+  onPress?: (course: Course) => void;
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
   course,
   showBuyButton = false,
   onBuyPress,
+  onPress,
 }) => {
   const handleBuyPress = () => {
     if (onBuyPress) {
@@ -35,8 +37,14 @@ const CourseCard: React.FC<CourseCardProps> = ({
     }
   };
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress(course);
+    }
+  };
+
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
       <View style={styles.imageContainer}>
         {course.imageUrl ? (
           <Image source={{ uri: course.imageUrl }} style={styles.image} />
@@ -74,7 +82,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

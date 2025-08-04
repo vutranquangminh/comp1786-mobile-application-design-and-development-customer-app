@@ -1,7 +1,10 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
+import BuyScreen from '../../screens/BuyScreen';
+import CourseDetailScreen from '../../screens/CourseDetailScreen';
 import LoginScreen from '../../screens/LoginScreen';
 import SignUpScreen from '../../screens/SignUpScreen';
+import TestFirestoreScreen from '../../screens/TestFirestoreScreen';
 import WelcomeScreen from '../../screens/WelcomeScreen';
 import MainTabNavigator from './MainTabNavigator';
 
@@ -10,6 +13,9 @@ export type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
   MainTabs: undefined;
+  CourseDetail: { courseId: string };
+  Buy: { course: any };
+  TestFirestore: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -54,9 +60,30 @@ const RootStackNavigator: React.FC = () => {
       />
       <Stack.Screen 
         name="MainTabs" 
-        component={MainTabNavigator}
+        component={(props) => <MainTabNavigator {...props} />}
         options={{
           gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="CourseDetail" 
+        component={CourseDetailScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen 
+        name="Buy" 
+        component={BuyScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen 
+        name="TestFirestore" 
+        component={TestFirestoreScreen}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>
