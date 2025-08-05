@@ -57,7 +57,14 @@ const TransactionScreen: React.FC<TransactionScreenProps> = ({ navigation }) => 
           { field: 'CustomerId', operator: '==', value: user.Id }
         ]);
         
-        setTransactions(userTransactions);
+        // Sort transactions by ID in descending order (newest first)
+        const sortedTransactions = userTransactions.sort((a, b) => {
+          const idA = Number(a.Id);
+          const idB = Number(b.Id);
+          return idB - idA; // Descending order (newest first)
+        });
+        
+        setTransactions(sortedTransactions);
       }
     } catch (error) {
       console.error('❌ Error loading transactions:', error);
@@ -183,13 +190,7 @@ const TransactionScreen: React.FC<TransactionScreenProps> = ({ navigation }) => 
           <View style={styles.headerSpacer} />
         </View>
 
-        {/* User Info */}
-        {userData && (
-          <View style={styles.userCard}>
-            <Text style={styles.userName}>{userData.Name}</Text>
-            <Text style={styles.userEmail}>{userData.Email}</Text>
-          </View>
-        )}
+
 
         {/* Balance Update Section */}
         {userData && (
@@ -338,27 +339,7 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 40,
   },
-  userCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 24,
-    marginTop: 16,
-    marginBottom: 16,
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
-  },
+
   balanceUpdateCard: {
     backgroundColor: '#ffffff',
     marginHorizontal: 24,
@@ -527,6 +508,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
+
 });
 
 export default TransactionScreen; 

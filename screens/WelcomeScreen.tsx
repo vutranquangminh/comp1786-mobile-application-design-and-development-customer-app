@@ -26,7 +26,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>Yoga Customer App</Text>
+          <Text style={styles.title}>Lotus Yoga App</Text>
           <Text style={styles.subtitle}>
             Discover the perfect yoga experience for your mind, body, and soul
           </Text>

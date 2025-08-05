@@ -1,99 +1,284 @@
-# 🧘‍♀️ Yoga Customer App
+# 🧘‍♀️ Lotus Yoga App Customer
 
-A comprehensive React Native yoga platform built with Expo and Firebase Firestore, featuring user authentication, course management, teacher booking, and transaction tracking.
+A comprehensive React Native mobile application for yoga studio management, built with Expo and Firebase. This app provides a complete customer experience for browsing courses, booking classes, managing profiles, and handling transactions.
 
-## ✨ Features
+## 📱 App Overview
 
-### 🔐 Authentication & User Management
-- **User Registration**: Complete sign-up with profile information
-- **User Login**: Secure email/password authentication
-- **Profile Management**: Edit profile, change password, update profile picture
-- **Account Balance**: Track and manage user account funds
-- **Transaction History**: View all purchase and balance update history
+The Lotus Yoga App Customer is a modern, user-friendly mobile application that connects yoga enthusiasts with yoga studios. Users can browse available courses, purchase classes, manage their profiles, view transaction history, and interact with teachers.
 
-### 📚 Course Management
-- **Course Discovery**: Browse available yoga courses
-- **Course Filtering**: Search by title, instructor, description, or level
-- **Course Types**: Public classes and private sessions
-- **Purchase System**: Buy courses with account balance
-- **Learning Interface**: Access purchased courses for learning
+### 🎯 Key Features
 
-### 👨‍🏫 Teacher Management
-- **Teacher Directory**: Browse available yoga teachers
-- **Teacher Profiles**: View teacher information and experience
-- **Private Booking**: Book private sessions with teachers
-- **Teacher Search**: Filter teachers by name or experience
-
-### 💰 Financial Features
-- **Account Balance**: Add funds to your account
-- **Purchase Tracking**: Complete transaction history
-- **Payment Methods**: Multiple payment options for purchases
-- **Balance Updates**: Add money to account with transaction records
-
-### 🎨 Modern UI/UX
-- **Purple Theme**: Consistent purple and white color scheme
-- **Responsive Design**: Works on iOS, Android, and Web
-- **Smooth Navigation**: Stack and tab navigation
-- **Loading States**: Proper loading indicators and error handling
-- **Modern Components**: Reusable card components and clean layouts
+- **🔐 Authentication System**: Secure sign-up and login with email/password
+- **🏠 Home Dashboard**: Browse courses and teachers with search functionality
+- **📚 Course Management**: View available courses, purchase classes, and track learning progress
+- **👤 User Profile**: Complete profile management with image upload support
+- **💰 Transaction History**: View all purchases and add money to account balance
+- **🎨 Modern UI/UX**: Beautiful, responsive design with smooth animations
+- **📊 Real-time Data**: Firebase Firestore integration for live data updates
 
 ## 🏗️ Architecture
 
-### Tech Stack
-- **React Native** with Expo
-- **TypeScript** for type safety
-- **Firebase Firestore** for backend database
-- **React Navigation** for navigation
-- **AsyncStorage** for local persistence
+### 📁 Project Structure
 
-### Project Structure
 ```
-yogacustomerapp/
-├── App.tsx                          # Main app component
-├── screens/                         # Screen components
-│   ├── WelcomeScreen.tsx           # Welcome/introduction
-│   ├── LoginScreen.tsx             # User authentication
-│   ├── SignUpScreen.tsx            # User registration
-│   ├── HomeScreen.tsx              # Course/Teacher discovery
-│   ├── CoursesScreen.tsx           # Purchased courses
-│   ├── BuyScreen.tsx               # Purchase interface
-│   ├── UserScreen.tsx              # User profile
-│   ├── EditProfileScreen.tsx       # Profile editing
-│   ├── TransactionScreen.tsx       # Transaction history
-│   ├── CourseDetailScreen.tsx      # Course details
-│   └── TestFirestoreScreen.tsx     # Development testing
-├── components/                      # Reusable components
-│   ├── CourseCard.tsx              # Course display
-│   ├── TeacherCard.tsx             # Teacher display
-│   └── navigation/                 # Navigation
-│       ├── RootStackNavigator.tsx  # Main stack
-│       └── MainTabNavigator.tsx    # Bottom tabs
-├── config/
-│   └── firebase.ts                 # Firebase configuration
-├── hooks/
-│   ├── useFirestore.ts             # Firestore operations
-│   └── useAuth.ts                  # Authentication
-├── scripts/                        # Database scripts
-│   ├── createTestUser.js           # Create test users
-│   ├── seedFirestore.js            # Seed database
-│   └── reset-project.js            # Reset project
-└── constants/
-    └── Colors.ts                   # Color definitions
+Lotus-Yoga-App-Customer/
+├── 📱 App.tsx                    # Main app entry point
+├── 📦 package.json               # Dependencies and scripts
+├── 🎨 app.json                   # Expo configuration
+├── 📋 tsconfig.json              # TypeScript configuration
+├── 🚀 index.js                   # App entry point
+├── 📋 eslint.config.js           # ESLint configuration
+├── 📋 .gitignore                 # Git ignore rules
+│
+├── 📂 screens/                   # Main application screens
+│   ├── 🏠 HomeScreen.tsx         # Home dashboard with course/teacher browsing
+│   ├── 📚 CoursesScreen.tsx      # Purchased courses with learning interface
+│   ├── 👤 UserScreen.tsx         # User profile and account management
+│   ├── 🛒 BuyScreen.tsx          # Course purchase flow
+│   ├── 📊 TransactionScreen.tsx  # Transaction history and balance management
+│   ├── ✏️ EditProfileScreen.tsx  # Profile editing and password management
+│   ├── 🔐 LoginScreen.tsx        # User authentication
+│   ├── 📝 SignUpScreen.tsx       # New user registration
+│   ├── 🎯 WelcomeScreen.tsx      # App welcome and navigation
+│   ├── 📖 CourseDetailScreen.tsx # Detailed course information
+│   └── 🧪 TestFirestoreScreen.tsx # Development testing screen
+│
+├── 📂 components/                # Reusable UI components
+│   ├── 🎴 CourseCard.tsx         # Course display component
+│   ├── 👨‍🏫 TeacherCard.tsx       # Teacher display component
+│   ├── 📝 ThemedText.tsx         # Themed text component
+│   ├── 🎨 ThemedView.tsx         # Themed view component
+│   ├── 📦 Collapsible.tsx        # Collapsible content component
+│   ├── 🔥 FirestoreExample.tsx   # Firestore testing component
+│   ├── 📱 HapticTab.tsx          # Haptic feedback tab component
+│   ├── 👋 HelloWave.tsx          # Welcome wave component
+│   ├── 📜 ParallaxScrollView.tsx # Parallax scroll component
+│   │
+│   ├── 📂 navigation/            # Navigation components
+│   │   ├── 🗺️ RootStackNavigator.tsx # Main navigation stack
+│   │   └── 📱 MainTabNavigator.tsx   # Bottom tab navigation
+│   │
+│   └── 📂 ui/                    # UI-specific components
+│       ├── 🎯 IconSymbol.ios.tsx # iOS icon symbols
+│       ├── 🎯 IconSymbol.tsx     # Cross-platform icon symbols
+│       ├── 📱 TabBarBackground.ios.tsx # iOS tab bar background
+│       └── 📱 TabBarBackground.tsx     # Cross-platform tab bar background
+│
+├── 📂 config/                    # Configuration files
+│   └── 🔥 firebase.ts            # Firebase configuration and helpers
+│
+├── 📂 hooks/                     # Custom React hooks
+│   ├── 🎨 useColorScheme.ts      # Color scheme management
+│   ├── 🌐 useColorScheme.web.ts  # Web color scheme
+│   ├── 🔥 useFirestore.ts        # Firestore data management
+│   └── 🎨 useThemeColor.ts       # Theme color utilities
+│
+├── 📂 constants/                 # App constants
+│   └── 🎨 Colors.ts              # Color definitions
+│
+├── 📂 scripts/                   # Utility scripts
+│   ├── 🔧 reset-project.js       # Project reset utility
+│   ├── 🌱 seedFirestore.js       # Database seeding
+│   ├── 👤 createTestUser.js      # Test user creation
+│   ├── 🔧 fixCustomerIds.js      # Customer ID fixing utility
+│   └── 🧪 testFirestore.js       # Firestore testing
+│
+├── 📂 assets/                    # Static assets
+│   ├── 📁 fonts/                 # Custom fonts
+│   │   └── SpaceMono-Regular.ttf # Custom font file
+│   └── 📁 images/                # App images and icons
+│       ├── icon.png              # App icon
+│       ├── adaptive-icon.png     # Android adaptive icon
+│       ├── splash-icon.png       # Splash screen icon
+│       ├── favicon.png           # Web favicon
+│       └── react-logo*.png       # React logo variants
+│
+├── 📂 .expo/                     # Expo configuration
+├── 📂 .git/                      # Git repository
+├── 📂 .vscode/                   # VS Code settings
+└── 📂 node_modules/              # Dependencies
+```
+
+## 🛠️ Tech Stack
+
+### **Frontend Framework**
+- **React Native** (v0.79.5) - Cross-platform mobile development
+- **Expo** (v53.0.20) - Development platform and tools
+- **TypeScript** (v5.8.3) - Type-safe JavaScript
+- **React** (v19.0.0) - UI library
+- **React DOM** (v19.0.0) - Web rendering
+
+### **Navigation**
+- **@react-navigation/native** (v7.1.17) - Navigation framework
+- **@react-navigation/stack** (v7.4.5) - Stack navigation
+- **@react-navigation/bottom-tabs** (v7.4.5) - Tab navigation
+
+### **Backend & Database**
+- **Firebase** (v12.0.0) - Backend-as-a-Service
+- **Firestore** - NoSQL cloud database
+- **Firebase Auth** - Authentication system
+
+### **UI/UX Libraries**
+- **@expo/vector-icons** (v14.1.0) - Icon library
+- **expo-blur** (v14.1.5) - Blur effects
+- **expo-haptics** (v14.1.4) - Haptic feedback
+- **expo-image** (v2.4.0) - Image optimization
+- **expo-constants** (v17.1.7) - App constants
+- **expo-font** (v13.3.2) - Custom fonts
+- **expo-linking** (v7.1.7) - Deep linking
+- **expo-splash-screen** (v0.30.10) - Splash screen
+- **expo-status-bar** (v2.2.3) - Status bar management
+- **expo-symbols** (v0.4.5) - Symbol components
+- **expo-system-ui** (v5.0.10) - System UI
+- **expo-web-browser** (v14.2.0) - Web browser integration
+- **react-native-reanimated** (v3.17.4) - Animations
+- **react-native-gesture-handler** (v2.24.0) - Gesture handling
+- **react-native-safe-area-context** (v5.4.0) - Safe area handling
+- **react-native-screens** (v4.11.1) - Screen management
+- **react-native-web** (v0.20.0) - Web support
+- **react-native-webview** (v13.13.5) - WebView component
+
+### **Storage & State Management**
+- **@react-native-async-storage/async-storage** (v2.2.0) - Local storage
+- **React Hooks** - State management
+
+### **Development Tools**
+- **ESLint** (v9.25.0) - Code linting
+- **eslint-config-expo** (v9.2.0) - Expo ESLint configuration
+- **@babel/core** (v7.25.2) - JavaScript compiler
+- **@types/react** (v19.0.10) - React TypeScript definitions
+
+## 🎯 Core Features & Functionality
+
+### **🔐 Authentication System**
+- **WelcomeScreen**: App entry point with sign-in/sign-up options
+- **LoginScreen**: Email/password authentication with show/hide password
+- **SignUpScreen**: New user registration with profile data collection
+- **Auto-redirect**: Successful sign-up redirects to login screen
+
+### **🏠 Home Dashboard (HomeScreen)**
+- **Course/Teacher Toggle**: Switch between course browsing and teacher listings
+- **Search Functionality**: Filter courses and teachers by name, description, or level
+- **Unpurchased Courses**: Shows only courses the user hasn't bought yet
+- **Teacher Cards**: Display teacher information with "Book Private Class" buttons
+- **Real-time Updates**: Fetches latest data from Firestore
+
+### **📚 Course Management (CoursesScreen)**
+- **Purchased Courses**: Shows only courses the user has bought
+- **Learn Button**: Purple "Learn" button for each purchased course
+- **Public/Private Toggle**: Filter between public and private classes
+- **Course Navigation**: Navigate to course details
+
+### **👤 User Profile (UserScreen)**
+- **Profile Display**: Shows user information with avatar (image or initials)
+- **Account Balance**: Real-time balance display with transaction history button
+- **Edit Profile**: Quick access to profile editing
+- **Change Password**: Dedicated password management
+- **Logout**: Secure session termination
+
+### **💰 Transaction Management (TransactionScreen)**
+- **Transaction History**: Complete list of all user transactions
+- **Balance Updates**: Add money to account balance
+- **Transaction Types**: 
+  - Green (+) for balance additions
+  - Red (-) for course purchases
+- **Real-time Updates**: Immediate balance and transaction updates
+
+### **✏️ Profile Editing (EditProfileScreen)**
+- **Profile Fields**: Name, email, phone, date of birth, image URL
+- **Password Management**: Current password verification, new password validation
+- **Show/Hide Password**: Toggle password visibility
+- **Dual Mode**: Profile editing or password-only mode
+- **Auto-scroll**: Automatic focus on password section when needed
+
+### **🛒 Purchase Flow (BuyScreen)**
+- **Course Details**: Complete course information display
+- **Payment Methods**: Multiple payment options (Credit Card, Apple Pay, PayPal, etc.)
+- **Balance Check**: Validates user has sufficient funds
+- **Transaction Recording**: Creates purchase records with integer IDs
+- **Success Modal**: Purchase confirmation with details
+- **Cross-reference**: Links customer to course with custom document IDs
+
+## 🗄️ Database Schema
+
+### **Firestore Collections**
+
+#### **`customers` Collection**
+```typescript
+{
+  Id: number,              // Integer customer ID (1, 2, 3...)
+  Email: string,           // User email
+  Password: string,        // Encrypted password
+  Name: string,            // Full name
+  PhoneNumber: string,     // Contact number
+  DateOfBirth: string,     // Birth date (YYYY-MM-DD)
+  DateCreated: string,     // Account creation date
+  ImageUrl: string | null, // Profile image URL
+  Balance: number          // Account balance
+}
+```
+
+#### **`courses` Collection**
+```typescript
+{
+  id: string,              // Course ID
+  title: string,           // Course title
+  instructor: string,      // Instructor name
+  duration: string,        // Course duration
+  level: string,           // Difficulty level
+  price: number,           // Course price
+  description: string,     // Course description
+  imageUrl?: string        // Course image URL
+}
+```
+
+#### **`teachers` Collection**
+```typescript
+{
+  Id: number,              // Teacher ID
+  Name: string,            // Teacher name
+  Experience: string,      // Years of experience
+  StartDate: string,       // Start date
+  ImageUrl?: string        // Teacher image URL
+}
+```
+
+#### **`transactions` Collection**
+```typescript
+{
+  Id: number,              // Transaction ID (integer)
+  CustomerId: number,      // Customer ID
+  Amount: string,          // Transaction amount
+  DateTime: string,        // Transaction date/time
+  PaymentMethod: string,   // Payment method used
+  Status: boolean          // Transaction status
+}
+```
+
+#### **`course_customer_crossrefs` Collection**
+```typescript
+{
+  customerId: number,      // Customer ID
+  courseId: number         // Course ID
+}
+// Document ID format: "customerId_courseId" (e.g., "1_17", "2_20")
 ```
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### **Prerequisites**
 - Node.js (v16 or higher)
-- Expo CLI (`npm install -g @expo/cli`)
-- Firebase project with Firestore enabled
+- npm or yarn
+- Expo CLI
+- iOS Simulator (for iOS development)
+- Android Studio (for Android development)
 
-### Installation
+### **Installation**
 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd yoyacustomerapp
+   cd Lotus-Yoga-App-Customer
    ```
 
 2. **Install dependencies**
@@ -101,197 +286,103 @@ yogacustomerapp/
    npm install
    ```
 
-3. **Set up Firebase**
+3. **Configure Firebase**
    - Create a Firebase project
-   - Enable Firestore Database
+   - Enable Firestore and Authentication
    - Update `config/firebase.ts` with your Firebase config
 
 4. **Seed the database**
    ```bash
    npm run seed-firestore
+   ```
+
+5. **Create test user**
+   ```bash
    npm run create-test-user
    ```
 
-5. **Start the development server**
+6. **Start the development server**
    ```bash
    npm start
    ```
 
-6. **Run on your preferred platform**
-   ```bash
-   # iOS
-   npm run ios
-   
-   # Android
-   npm run android
-   
-   # Web
-   npm run web
-   ```
-
-## 📊 Database Structure
-
-### Collections
-
-#### `customers`
-User account information:
-```typescript
-{
-  Id: number;
-  Email: string;
-  Password: string;
-  Name: string;
-  PhoneNumber: string;
-  DateOfBirth: string;
-  DateCreated: string;
-  ImageUrl: string | null;
-  Balance: number;
-}
-```
-
-#### `courses`
-Yoga course information:
-```typescript
-{
-  Id: number;
-  Name: string;
-  Description: string;
-  Price: string;
-  Duration: number;
-  Category: string;
-  TeacherId: number;
-}
-```
-
-#### `teachers`
-Teacher information:
-```typescript
-{
-  Id: number;
-  Name: string;
-  Experience: string;
-  Specialization: string;
-  ImageUrl: string;
-}
-```
-
-#### `transactions`
-Purchase and balance update records:
-```typescript
-{
-  Id: string;
-  CustomerId: number;
-  Amount: number;
-  DateTime: string;
-  PaymentMethod: string;
-  Status: string;
-}
-```
-
-#### `course_customer_crossrefs`
-Course purchase relationships:
-```typescript
-{
-  customerId: number;
-  courseId: number;
-}
-```
-
-## 🎯 Key Features Explained
-
-### Authentication Flow
-1. **Welcome Screen** → App introduction with Sign In/Sign Up options
-2. **Login/SignUp** → User authentication with Firebase
-3. **Main App** → Bottom tab navigation with Home, Courses, and Profile
-
-### Course Management
-- **Home Screen**: Shows unpurchased courses and teachers
-- **Courses Screen**: Displays purchased courses with "Learn" buttons
-- **Course Types**: Toggle between Public and Private classes
-- **Search & Filter**: Find courses by title, instructor, or description
-
-### User Profile
-- **Account Balance**: View and manage funds
-- **Profile Editing**: Update personal information and password
-- **Transaction History**: View all purchases and balance updates
-- **Profile Picture**: Upload custom profile images via URL
-
-### Purchase System
-- **Buy Screen**: Complete purchase interface with payment methods
-- **Balance Management**: Add funds to account
-- **Transaction Tracking**: Complete history of all financial activities
-
-## 🛠️ Available Scripts
+### **Available Scripts**
 
 ```bash
-# Development
-npm start              # Start Expo development server
-npm run android        # Run on Android
-npm run ios           # Run on iOS
-npm run web           # Run on Web
-
-# Database Management
-npm run seed-firestore    # Seed database with sample data
-npm run create-test-user  # Create test user account
-npm run reset-project     # Reset project to initial state
-
-# Code Quality
-npm run lint           # Run ESLint
+npm start                    # Start Expo development server
+npm run android             # Run on Android device/emulator
+npm run ios                 # Run on iOS simulator
+npm run web                 # Run on web browser
+npm run reset-project       # Reset project to initial state
+npm run seed-firestore      # Seed Firestore with sample data
+npm run create-test-user    # Create a test user account
+npm run fix-customer-ids    # Fix customer document IDs
+npm run lint                # Run ESLint
 ```
 
-## 🎨 UI/UX Features
+## 🎨 Design System
 
-### Color Scheme
-- **Primary**: `#8b5cf6` (Purple)
-- **Secondary**: `#059669` (Green for success actions)
-- **Background**: `#f8fafc` (Light gray)
-- **Text**: `#1e293b` (Dark gray)
+### **Color Palette**
+- **Primary Purple**: `#8b5cf6` - Main brand color
+- **Success Green**: `#27ae60` - Positive actions
+- **Warning Red**: `#e74c3c` - Errors and negative amounts
+- **Neutral Gray**: `#7f8c8d` - Secondary text
+- **Background**: `#f8fafc` - Light background
+- **Card Background**: `#ffffff` - Card backgrounds
 
-### Navigation Structure
-```
-Welcome Screen
-├── Login Screen
-├── Sign Up Screen
-└── Main App (Tab Navigation)
-    ├── Home Screen
-    │   ├── Course Tab
-    │   └── Teacher Tab
-    ├── Courses Screen
-    │   ├── Public Classes
-    │   └── Private Classes
-    └── User Screen
-        ├── Edit Profile
-        ├── Change Password
-        └── Transaction History
-```
+### **Typography**
+- **Headers**: 32px, bold, dark gray
+- **Titles**: 18px, bold, dark gray
+- **Body Text**: 14px, regular, medium gray
+- **Button Text**: 16px, semibold, white/purple
 
-## 🔧 Customization
+### **Components**
+- **Cards**: Rounded corners (16px), subtle shadows
+- **Buttons**: Rounded corners (12px), purple background
+- **Input Fields**: Rounded corners (8px), light borders
+- **Avatars**: Circular design with fallback initials
 
-### Adding New Features
-1. **New Screens**: Add to `screens/` directory
-2. **New Components**: Add to `components/` directory
-3. **Database Changes**: Update Firestore collections and helper functions
-4. **Navigation**: Update navigation types and routes
+## 🔧 Key Components
 
-### Styling
-- Consistent purple theme throughout the app
-- Modern card-based layouts
-- Responsive design for all screen sizes
-- Loading states and error handling
+### **Navigation System**
+- **RootStackNavigator**: Main navigation stack with screen transitions
+- **MainTabNavigator**: Bottom tab navigation for main app sections
+- **Screen Transitions**: Smooth slide animations between screens
+
+### **Firebase Integration**
+- **firestoreHelpers**: CRUD operations for Firestore
+- **authHelpers**: Custom authentication system
+- **useFirestore Hook**: React hook for Firestore operations
+- **useAuth Hook**: React hook for authentication state
+
+### **Data Management**
+- **Integer IDs**: All documents use sequential integer IDs (1, 2, 3...)
+- **Custom Document IDs**: Cross-references use `customerId_courseId` format
+- **Real-time Updates**: Immediate UI updates on data changes
+- **Error Handling**: Comprehensive error handling and user feedback
 
 ## 🚀 Deployment
 
-### Expo Build
+### **Expo Build**
 ```bash
-# Build for production
-expo build:android
+# Build for iOS
 expo build:ios
+
+# Build for Android
+expo build:android
+
+# Build for web
+expo build:web
 ```
 
-### Firebase Deployment
-1. Configure Firebase project
-2. Set up Firestore security rules
-3. Deploy to Firebase hosting (for web)
+### **Firebase Deployment**
+```bash
+# Deploy Firestore rules
+firebase deploy --only firestore:rules
+
+# Deploy hosting (if applicable)
+firebase deploy --only hosting
+```
 
 ## 🤝 Contributing
 
@@ -301,17 +392,17 @@ expo build:ios
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🆘 Support
 
-- Built with React Native and Expo
-- Powered by Firebase Firestore
-- Icons and emojis for visual elements
-- Modern UI/UX design principles
+For support and questions:
+- Create an issue in the repository
+- Contact the development team
+- Check the documentation
 
 ---
 
-**Made with ❤️ for the yoga community**
+**Built with ❤️ using React Native, Expo, and Firebase**
