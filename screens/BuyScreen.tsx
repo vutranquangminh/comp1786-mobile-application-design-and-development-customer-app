@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { firestoreHelpers } from '../config/firebase';
@@ -40,10 +40,12 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
   const [userBalance, setUserBalance] = useState<number>(0);
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [teacherName, setTeacherName] = useState<string>('');
   const [courseData, setCourseData] = useState<any>(null);
   const [teacherData, setTeacherData] = useState<any>(null);
   const [userData, setUserData] = useState<any>(null);
+  const [purchaseDetails, setPurchaseDetails] = useState<any>(null);
 
   useEffect(() => {
     loadAllData();
@@ -134,12 +136,22 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
         courseId: parseInt(course.id)
       };
 
-      // 2. Add to course_customer_crossrefs
-      await firestoreHelpers.addDocument('course_customer_crossrefs', purchaseData);
+      // 2. Add to course_customer_crossrefs with custom document ID
+      const crossrefDocId = `${user.Id}_${course.id}`;
+      await firestoreHelpers.addDocumentWithId('course_customer_crossrefs', crossrefDocId, purchaseData);
+
+      // Get the next available transaction ID
+      const transactionsSnapshot = await firestoreHelpers.getCollection('transactions');
+      let nextTransactionId = 1;
+      
+      if (transactionsSnapshot.length > 0) {
+        const maxId = Math.max(...transactionsSnapshot.map(transaction => transaction.Id || 0));
+        nextTransactionId = maxId + 1;
+      }
 
       // 3. Create transaction record
       const transactionData = {
-        Id: Date.now(),
+        Id: nextTransactionId,
         CustomerId: user.Id,
         Amount: course.price.toString(),
         DateTime: new Date().toISOString().split('T')[0],
@@ -147,7 +159,9 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
         Status: true
       };
 
-      await firestoreHelpers.addDocument('transactions', transactionData);
+      // Use custom integer document ID
+      const docId = nextTransactionId.toString();
+      await firestoreHelpers.addDocumentWithId('transactions', docId, transactionData);
 
       // 4. Update user balance
       const newBalance = userBalance - course.price;
@@ -173,7 +187,18 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
         }
       }
 
-      navigation.navigate('MainTabs', { screen: 'Courses' });
+      // Set purchase details for success modal
+      setPurchaseDetails({
+        courseTitle: course.title,
+        coursePrice: course.price,
+        paymentMethod: paymentMethods.find(m => m.id === selectedPaymentMethod)?.label || 'Credit Card',
+        newBalance: newBalance,
+        purchaseDate: new Date().toLocaleDateString(),
+        transactionId: nextTransactionId
+      });
+
+      // Show success modal instead of navigating immediately
+      setShowSuccessModal(true);
 
     } catch (error) {
       Alert.alert('Purchase Failed', 'There was an error processing your purchase. Please try again.');
@@ -362,6 +387,77 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Purchase Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.successModalContent}>
+            <View style={styles.successModalHeader}>
+              <View style={styles.successIconContainer}>
+                <Text style={styles.successIcon}>✅</Text>
+              </View>
+              <Text style={styles.successModalTitle}>Purchase Successful!</Text>
+              <Text style={styles.successModalSubtitle}>Your course has been purchased successfully</Text>
+            </View>
+            
+            {purchaseDetails && (
+              <View style={styles.purchaseDetailsContainer}>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Course</Text>
+                  <Text style={styles.detailValue}>{purchaseDetails.courseTitle}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Amount Paid</Text>
+                  <Text style={styles.detailValue}>${purchaseDetails.coursePrice}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Payment Method</Text>
+                  <Text style={styles.detailValue}>{purchaseDetails.paymentMethod}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>New Balance</Text>
+                  <Text style={styles.detailValue}>${purchaseDetails.newBalance.toFixed(2)}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Date</Text>
+                  <Text style={styles.detailValue}>{purchaseDetails.purchaseDate}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Transaction ID</Text>
+                  <Text style={styles.detailValue}>#{purchaseDetails.transactionId}</Text>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.successModalActions}>
+              <TouchableOpacity
+                style={styles.viewCoursesButton}
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  navigation.navigate('MainTabs', { screen: 'Courses' });
+                }}
+              >
+                <Text style={styles.viewCoursesButtonText}>View My Courses</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  navigation.goBack();
+                }}
+              >
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -671,6 +767,101 @@ const styles = StyleSheet.create({
   },
   selectedPaymentOptionLabel: {
     color: '#8b5cf6',
+    fontWeight: '600',
+  },
+  // Success Modal Styles
+  successModalContent: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 32,
+    maxHeight: '80%',
+  },
+  successModalHeader: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  successIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#dcfce7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  successIcon: {
+    fontSize: 40,
+  },
+  successModalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 8,
+  },
+  successModalSubtitle: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+  },
+  purchaseDetailsContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#1e293b',
+    fontWeight: '600',
+  },
+  successModalActions: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  viewCoursesButton: {
+    backgroundColor: '#8b5cf6',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#8b5cf6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  viewCoursesButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  closeButton: {
+    backgroundColor: '#f1f5f9',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#64748b',
+    fontSize: 16,
     fontWeight: '600',
   },
 });

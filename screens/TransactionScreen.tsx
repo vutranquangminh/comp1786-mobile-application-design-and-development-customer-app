@@ -118,9 +118,18 @@ const TransactionScreen: React.FC<TransactionScreenProps> = ({ navigation }) => 
         Balance: newBalance
       });
 
+      // Get the next available transaction ID
+      const transactionsSnapshot = await firestoreHelpers.getCollection('transactions');
+      let nextTransactionId = 1;
+      
+      if (transactionsSnapshot.length > 0) {
+        const maxId = Math.max(...transactionsSnapshot.map(transaction => transaction.Id || 0));
+        nextTransactionId = maxId + 1;
+      }
+
       // Create a transaction record for the balance update
       const transactionData = {
-        Id: Date.now(),
+        Id: nextTransactionId,
         CustomerId: user.Id,
         Amount: numAmount.toString(),
         DateTime: new Date().toISOString().split('T')[0],
@@ -128,7 +137,9 @@ const TransactionScreen: React.FC<TransactionScreenProps> = ({ navigation }) => 
         Status: true
       };
 
-      await firestoreHelpers.addDocument('transactions', transactionData);
+      // Use custom integer document ID
+      const docId = nextTransactionId.toString();
+      await firestoreHelpers.addDocumentWithId('transactions', docId, transactionData);
 
       // Update local state
       setUserData({ ...userData, Balance: newBalance });

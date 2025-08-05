@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeApp } from "firebase/app";
-import { getReactNativePersistence, initializeAuth } from "firebase/auth";
-import { addDoc, collection, deleteDoc, doc, getDocs, getFirestore, limit, orderBy, query, updateDoc, where } from "firebase/firestore";
+import { getAuth, getReactNativePersistence, initializeAuth } from "firebase/auth";
+import { addDoc, collection, deleteDoc, doc, getDocs, getFirestore, limit, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -62,6 +62,17 @@ export const firestoreHelpers = {
       return docRef.id;
     } catch (error) {
       console.error("Error adding document:", error);
+      throw error;
+    }
+  },
+
+  // Add a document with custom ID
+  async addDocumentWithId(collectionName: string, docId: string, data: any) {
+    try {
+      await setDoc(doc(db, collectionName, docId), data);
+      return docId;
+    } catch (error) {
+      console.error("Error adding document with custom ID:", error);
       throw error;
     }
   },
@@ -134,13 +145,18 @@ export const authHelpers = {
         throw new Error('User already exists');
       }
 
-      // Get the next ID
+      // Get the next ID by finding the highest existing ID
       const allCustomers = await firestoreHelpers.getCollection('customers');
-      const nextId = allCustomers.length + 1;
+      let nextId = 1;
+      
+      if (allCustomers.length > 0) {
+        const maxId = Math.max(...allCustomers.map(customer => customer.Id || 0));
+        nextId = maxId + 1;
+      }
 
       // Create new user in customers collection
       const newUser = {
-        Id: nextId,
+        Id: nextId, // Integer ID
         Email: email,
         Password: password,
         Name: userData.fullName,
@@ -151,8 +167,12 @@ export const authHelpers = {
         Balance: 0
       };
 
-      const docRef = await firestoreHelpers.addDocument('customers', newUser);
-      return { uid: docRef, ...newUser };
+      // Use custom integer document ID
+      const docId = nextId.toString();
+      console.log('🔧 Creating customer with document ID:', docId);
+      await firestoreHelpers.addDocumentWithId('customers', docId, newUser);
+      console.log('✅ Customer created successfully with ID:', docId);
+      return { uid: docId, ...newUser };
     } catch (error) {
       console.error("Error signing up:", error);
       throw error;

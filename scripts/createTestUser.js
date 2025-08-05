@@ -3,7 +3,7 @@
 
 const { initializeApp } = require('firebase/app');
 const { initializeAuth, getReactNativePersistence, createUserWithEmailAndPassword } = require('firebase/auth');
-const { getFirestore, collection, addDoc } = require('firebase/firestore');
+const { getFirestore, collection, addDoc, getDocs, setDoc, doc } = require('firebase/firestore');
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -39,9 +39,22 @@ async function createTestUser() {
     console.log('✅ Firebase Auth user created successfully!');
     console.log('User ID:', userCredential.user.uid);
     
+    // Get the next available ID
+    const customersSnapshot = await getDocs(collection(db, 'customers'));
+    const allCustomers = customersSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    let nextId = 1;
+    if (allCustomers.length > 0) {
+      const maxId = Math.max(...allCustomers.map(customer => customer.Id || 0));
+      nextId = maxId + 1;
+    }
+    
     // Create corresponding user in Firestore customers collection
     const customerData = {
-      Id: 1, // Unique ID for the customer
+      Id: nextId, // Integer ID
       Email: 'minh@gmail.com',
       Password: '123456',
       Name: 'Minh Nguyen',
@@ -52,10 +65,12 @@ async function createTestUser() {
       Balance: 100.00
     };
     
-    const customerDoc = await addDoc(collection(db, 'customers'), customerData);
+    // Use custom integer document ID
+    const docId = nextId.toString();
+    await setDoc(doc(db, 'customers', docId), customerData);
     
     console.log('✅ Firestore customer created successfully!');
-    console.log('Customer document ID:', customerDoc.id);
+    console.log('Customer document ID:', docId);
     
     console.log('\n🎉 Test user created successfully!');
     console.log('Email: minh@gmail.com');
@@ -73,8 +88,21 @@ async function createTestUser() {
       
       // Try to create just the Firestore customer
       try {
+        // Get the next available ID
+        const customersSnapshot = await getDocs(collection(db, 'customers'));
+        const allCustomers = customersSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        let nextId = 1;
+        if (allCustomers.length > 0) {
+          const maxId = Math.max(...allCustomers.map(customer => customer.Id || 0));
+          nextId = maxId + 1;
+        }
+        
         const customerData = {
-          Id: 1,
+          Id: nextId, // Integer ID
           Email: 'minh@gmail.com',
           Password: '123456',
           Name: 'Minh Nguyen',
@@ -85,9 +113,11 @@ async function createTestUser() {
           Balance: 100.00
         };
         
-        const customerDoc = await addDoc(collection(db, 'customers'), customerData);
+        // Use custom integer document ID
+        const docId = nextId.toString();
+        await setDoc(doc(db, 'customers', docId), customerData);
         console.log('✅ Firestore customer created successfully!');
-        console.log('Customer document ID:', customerDoc.id);
+        console.log('Customer document ID:', docId);
         
         console.log('\nYou can now use these credentials to login:');
         console.log('Email: minh@gmail.com');
