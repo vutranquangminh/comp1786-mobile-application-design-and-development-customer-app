@@ -1,11 +1,14 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import CoursesScreen from '../../screens/CoursesScreen';
 import HomeScreen from '../../screens/HomeScreen';
 import UserScreen from '../../screens/UserScreen';
+import { ModernColors } from '../../constants/Colors';
 
 export type MainTabParamList = {
   Home: undefined;
@@ -38,33 +41,44 @@ const MainTabNavigator: React.FC<Props> = ({ navigation }) => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: string;
+          let iconName: keyof typeof Ionicons.glyphMap;
 
           if (route.name === 'Home') {
-            iconName = focused ? '🏠' : '🏠';
+            iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Courses') {
-            iconName = focused ? '📚' : '📚';
+            iconName = focused ? 'library' : 'library-outline';
           } else if (route.name === 'User') {
-            iconName = focused ? '👤' : '👤';
+            iconName = focused ? 'person' : 'person-outline';
           } else {
-            iconName = '❓';
+            iconName = 'help-outline';
           }
 
-          return <Text style={{ fontSize: size, color }}>{iconName}</Text>;
+          return (
+            <View style={styles.iconContainer}>
+              <Ionicons name={iconName} size={size} color={color} />
+              {focused && <View style={styles.activeIndicator} />}
+            </View>
+          );
         },
-        tabBarActiveTintColor: '#27ae60',
-        tabBarInactiveTintColor: '#7f8c8d',
+        tabBarActiveTintColor: ModernColors.primary.main,
+        tabBarInactiveTintColor: ModernColors.text.tertiary,
         tabBarStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: ModernColors.background.primary,
           borderTopWidth: 1,
-          borderTopColor: '#e1e8ed',
+          borderTopColor: ModernColors.border.light,
           paddingBottom: insets.bottom,
-          paddingTop: 5,
-          height: 60 + insets.bottom,
+          paddingTop: 8,
+          height: 70 + insets.bottom,
+          shadowColor: ModernColors.shadow.medium,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 1,
+          shadowRadius: 8,
+          elevation: 8,
         },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
+          marginTop: 4,
         },
         headerShown: false,
       })}
@@ -92,6 +106,22 @@ const MainTabNavigator: React.FC<Props> = ({ navigation }) => {
       />
     </Tab.Navigator>
   );
+};
+
+const styles = {
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative' as const,
+  },
+  activeIndicator: {
+    position: 'absolute' as const,
+    bottom: -8,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: ModernColors.primary.main,
+  },
 };
 
 export default MainTabNavigator; 

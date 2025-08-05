@@ -1,4 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import {
     StyleSheet,
@@ -7,6 +9,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ModernColors } from '../constants/Colors';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -24,36 +27,47 @@ interface Props {
 const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Lotus Yoga App</Text>
-          <Text style={styles.subtitle}>
-            Discover the perfect yoga experience for your mind, body, and soul
-          </Text>
-        </View>
+      <LinearGradient
+        colors={[ModernColors.background.primary, ModernColors.background.secondary]}
+        style={styles.gradient}
+      >
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <LinearGradient
+                colors={[ModernColors.primary.light, ModernColors.primary.main]}
+                style={styles.logo}
+              >
+                <Ionicons name="flower" size={48} color={ModernColors.text.inverse} />
+              </LinearGradient>
+            </View>
+            <Text style={styles.title}>Lotus Yoga</Text>
+          </View>
 
-        <View style={styles.imageContainer}>
-          <View style={styles.imagePlaceholder}>
-            <Text style={styles.imageText}>🧘‍♀️</Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => navigation.navigate('Login')}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+                style={styles.primaryButtonGradient}
+              >
+                <Text style={styles.primaryButtonText}>Sign In</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('SignUp')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.secondaryButtonText}>Create Account</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <Text style={styles.primaryButtonText}>Sign In</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => navigation.navigate('SignUp')}
-          >
-            <Text style={styles.secondaryButtonText}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      </LinearGradient>
     </SafeAreaView>
   );
 };
@@ -61,90 +75,74 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+  },
+  gradient: {
+    flex: 1,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     justifyContent: 'space-between',
-    paddingVertical: 40,
+    paddingVertical: 60,
   },
   header: {
     alignItems: 'center',
-    marginTop: 60,
+    marginTop: 40,
+  },
+  logoContainer: {
+    marginBottom: 24,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '600',
-    color: '#1e293b',
+    fontSize: 36,
+    fontWeight: '700',
+    color: ModernColors.text.primary,
     textAlign: 'center',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 20,
-  },
-  imageContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imagePlaceholder: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: '#f1f5f9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  imageText: {
-    fontSize: 80,
   },
   buttonContainer: {
     gap: 16,
   },
   primaryButton: {
-    backgroundColor: '#8b5cf6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#8b5cf6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
+  primaryButtonGradient: {
+    paddingVertical: 18,
+    alignItems: 'center',
+  },
   primaryButtonText: {
-    color: '#ffffff',
+    color: ModernColors.text.inverse,
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   secondaryButton: {
     backgroundColor: 'transparent',
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 18,
+    borderRadius: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#8b5cf6',
+    borderColor: ModernColors.primary.main,
   },
   secondaryButtonText: {
-    color: '#8b5cf6',
+    color: ModernColors.primary.main,
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
 

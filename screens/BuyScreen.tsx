@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -11,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { firestoreHelpers } from '../config/firebase';
+import { ModernColors } from '../constants/Colors';
 import { useAuth } from '../hooks/useFirestore';
 
 interface BuyScreenProps {
@@ -208,18 +211,18 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
   };
 
   const paymentMethods = [
-    { id: 'credit_card', label: 'Credit Card', icon: '💳' },
-    { id: 'debit_card', label: 'Debit Card', icon: '💳' },
-    { id: 'apple_pay', label: 'Apple Pay', icon: '🍎' },
-    { id: 'paypal', label: 'PayPal', icon: '📱' },
-    { id: 'bank_transfer', label: 'Bank Transfer', icon: '🏦' },
+    { id: 'credit_card', label: 'Credit Card', icon: 'card' },
+    { id: 'debit_card', label: 'Debit Card', icon: 'card' },
+    { id: 'apple_pay', label: 'Apple Pay', icon: 'logo-apple' },
+    { id: 'paypal', label: 'PayPal', icon: 'logo-paypal' },
+    { id: 'bank_transfer', label: 'Bank Transfer', icon: 'business' },
   ];
 
   if (loadingBalance) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8b5cf6" />
+          <ActivityIndicator size="large" color={ModernColors.primary.main} />
           <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
@@ -230,16 +233,19 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Modern Header */}
-        <View style={styles.header}>
+        <LinearGradient
+          colors={[ModernColors.background.primary, ModernColors.background.secondary]}
+          style={styles.header}
+        >
           <TouchableOpacity 
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <Ionicons name="arrow-back" size={24} color={ModernColors.text.primary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Purchase</Text>
           <View style={styles.headerSpacer} />
-        </View>
+        </LinearGradient>
 
         {/* Course Card */}
         <View style={styles.courseCard}>
@@ -250,12 +256,22 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
           <Text style={styles.courseInstructor}>by {teacherName || 'Loading...'}</Text>
           <View style={styles.courseMeta}>
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Duration</Text>
-              <Text style={styles.metaValue}>{course.duration}</Text>
+              <View style={styles.metaIconContainer}>
+                <Ionicons name="time" size={16} color={ModernColors.text.tertiary} />
+              </View>
+              <View style={styles.metaContent}>
+                <Text style={styles.metaLabel}>Duration</Text>
+                <Text style={styles.metaValue}>{course.duration}</Text>
+              </View>
             </View>
             <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Level</Text>
-              <Text style={styles.metaValue}>{course.level}</Text>
+              <View style={styles.metaIconContainer}>
+                <Ionicons name="flower" size={16} color={ModernColors.text.tertiary} />
+              </View>
+              <View style={styles.metaContent}>
+                <Text style={styles.metaLabel}>Level</Text>
+                <Text style={styles.metaValue}>{course.level}</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -263,13 +279,19 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
         {/* User Balance */}
         <View style={styles.balanceCard}>
           <View style={styles.balanceRow}>
-            <Text style={styles.balanceLabel}>Available Balance</Text>
-            <Text style={[styles.balanceAmount, userBalance < course.price && styles.insufficientBalance]}>
-              ${userBalance.toFixed(2)}
-            </Text>
+            <View style={styles.balanceInfo}>
+              <Text style={styles.balanceLabel}>Available Balance</Text>
+              <Text style={[styles.balanceAmount, userBalance < course.price && styles.insufficientBalance]}>
+                ${userBalance.toFixed(2)}
+              </Text>
+            </View>
+            <Ionicons name="wallet" size={24} color={ModernColors.primary.main} />
           </View>
           {userBalance < course.price && (
-            <Text style={styles.insufficientText}>Insufficient balance</Text>
+            <View style={styles.insufficientContainer}>
+              <Ionicons name="warning" size={16} color={ModernColors.error.main} />
+              <Text style={styles.insufficientText}>Insufficient balance</Text>
+            </View>
           )}
         </View>
 
@@ -281,14 +303,18 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
             onPress={() => setShowPaymentModal(true)}
           >
             <View style={styles.paymentSelectorContent}>
-              <Text style={styles.paymentIcon}>
-                {paymentMethods.find(m => m.id === selectedPaymentMethod)?.icon}
-              </Text>
+              <View style={styles.paymentIconContainer}>
+                <Ionicons 
+                  name={paymentMethods.find(m => m.id === selectedPaymentMethod)?.icon as any} 
+                  size={20} 
+                  color={ModernColors.primary.main} 
+                />
+              </View>
               <Text style={styles.paymentText}>
                 {paymentMethods.find(m => m.id === selectedPaymentMethod)?.label}
               </Text>
             </View>
-            <Text style={styles.selectorArrow}>›</Text>
+            <Ionicons name="chevron-forward" size={20} color={ModernColors.text.secondary} />
           </TouchableOpacity>
         </View>
 
@@ -298,6 +324,9 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
           
           {courseData && (
             <View style={styles.dataRow}>
+              <View style={styles.dataIconContainer}>
+                <Ionicons name="document-text" size={16} color={ModernColors.text.tertiary} />
+              </View>
               <Text style={styles.dataLabel}>Course ID</Text>
               <Text style={styles.dataValue}>{course.id}</Text>
             </View>
@@ -305,6 +334,9 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
           
           {teacherData && (
             <View style={styles.dataRow}>
+              <View style={styles.dataIconContainer}>
+                <Ionicons name="person" size={16} color={ModernColors.text.tertiary} />
+              </View>
               <Text style={styles.dataLabel}>Instructor</Text>
               <Text style={styles.dataValue}>{teacherData.Name}</Text>
             </View>
@@ -312,12 +344,18 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
           
           {userData && (
             <View style={styles.dataRow}>
+              <View style={styles.dataIconContainer}>
+                <Ionicons name="person-circle" size={16} color={ModernColors.text.tertiary} />
+              </View>
               <Text style={styles.dataLabel}>Customer</Text>
               <Text style={styles.dataValue}>{userData.Name}</Text>
             </View>
           )}
           
           <View style={styles.dataRow}>
+            <View style={styles.dataIconContainer}>
+              <Ionicons name="calendar" size={16} color={ModernColors.text.tertiary} />
+            </View>
             <Text style={styles.dataLabel}>Date</Text>
             <Text style={styles.dataValue}>{new Date().toLocaleDateString()}</Text>
           </View>
@@ -333,13 +371,25 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
             onPress={handlePurchase}
             disabled={loading || userBalance < course.price}
           >
-            {loading ? (
-              <ActivityIndicator color="#ffffff" size="small" />
-            ) : (
-              <Text style={styles.purchaseButtonText}>
-                {userBalance < course.price ? 'Insufficient Balance' : 'Complete Purchase'}
-              </Text>
-            )}
+            <LinearGradient
+              colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+              style={styles.purchaseButtonGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color={ModernColors.text.inverse} size="small" />
+              ) : (
+                <>
+                  <Ionicons 
+                    name={userBalance < course.price ? "warning" : "card"} 
+                    size={20} 
+                    color={ModernColors.text.inverse} 
+                  />
+                  <Text style={styles.purchaseButtonText}>
+                    {userBalance < course.price ? 'Insufficient Balance' : 'Complete Purchase'}
+                  </Text>
+                </>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -359,7 +409,7 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
                 style={styles.modalCloseButton}
                 onPress={() => setShowPaymentModal(false)}
               >
-                <Text style={styles.modalCloseText}>✕</Text>
+                <Ionicons name="close" size={20} color={ModernColors.text.secondary} />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalScrollView}>
@@ -376,7 +426,13 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
                   }}
                 >
                   <View style={styles.paymentOptionContent}>
-                    <Text style={styles.paymentOptionIcon}>{method.icon}</Text>
+                    <View style={styles.paymentOptionIconContainer}>
+                      <Ionicons 
+                        name={method.icon as any} 
+                        size={20} 
+                        color={selectedPaymentMethod === method.id ? ModernColors.primary.main : ModernColors.text.secondary} 
+                      />
+                    </View>
                     <Text style={[
                       styles.paymentOptionLabel,
                       selectedPaymentMethod === method.id && styles.selectedPaymentOptionLabel
@@ -384,6 +440,9 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
                       {method.label}
                     </Text>
                   </View>
+                  {selectedPaymentMethod === method.id && (
+                    <Ionicons name="checkmark-circle" size={20} color={ModernColors.primary.main} />
+                  )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -402,7 +461,7 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
           <View style={styles.successModalContent}>
             <View style={styles.successModalHeader}>
               <View style={styles.successIconContainer}>
-                <Text style={styles.successIcon}>✅</Text>
+                <Ionicons name="checkmark-circle" size={40} color={ModernColors.success.main} />
               </View>
               <Text style={styles.successModalTitle}>Purchase Successful!</Text>
               <Text style={styles.successModalSubtitle}>Your course has been purchased successfully</Text>
@@ -411,26 +470,44 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
             {purchaseDetails && (
               <View style={styles.purchaseDetailsContainer}>
                 <View style={styles.detailRow}>
+                  <View style={styles.detailIconContainer}>
+                    <Ionicons name="document-text" size={16} color={ModernColors.text.tertiary} />
+                  </View>
                   <Text style={styles.detailLabel}>Course</Text>
                   <Text style={styles.detailValue}>{purchaseDetails.courseTitle}</Text>
                 </View>
                 <View style={styles.detailRow}>
+                  <View style={styles.detailIconContainer}>
+                    <Ionicons name="card" size={16} color={ModernColors.text.tertiary} />
+                  </View>
                   <Text style={styles.detailLabel}>Amount Paid</Text>
                   <Text style={styles.detailValue}>${purchaseDetails.coursePrice}</Text>
                 </View>
                 <View style={styles.detailRow}>
+                  <View style={styles.detailIconContainer}>
+                    <Ionicons name="card" size={16} color={ModernColors.text.tertiary} />
+                  </View>
                   <Text style={styles.detailLabel}>Payment Method</Text>
                   <Text style={styles.detailValue}>{purchaseDetails.paymentMethod}</Text>
                 </View>
                 <View style={styles.detailRow}>
+                  <View style={styles.detailIconContainer}>
+                    <Ionicons name="wallet" size={16} color={ModernColors.text.tertiary} />
+                  </View>
                   <Text style={styles.detailLabel}>New Balance</Text>
                   <Text style={styles.detailValue}>${purchaseDetails.newBalance.toFixed(2)}</Text>
                 </View>
                 <View style={styles.detailRow}>
+                  <View style={styles.detailIconContainer}>
+                    <Ionicons name="calendar" size={16} color={ModernColors.text.tertiary} />
+                  </View>
                   <Text style={styles.detailLabel}>Date</Text>
                   <Text style={styles.detailValue}>{purchaseDetails.purchaseDate}</Text>
                 </View>
                 <View style={styles.detailRow}>
+                  <View style={styles.detailIconContainer}>
+                    <Ionicons name="receipt" size={16} color={ModernColors.text.tertiary} />
+                  </View>
                   <Text style={styles.detailLabel}>Transaction ID</Text>
                   <Text style={styles.detailValue}>#{purchaseDetails.transactionId}</Text>
                 </View>
@@ -445,7 +522,13 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
                   navigation.navigate('MainTabs', { screen: 'Courses' });
                 }}
               >
-                <Text style={styles.viewCoursesButtonText}>View My Courses</Text>
+                <LinearGradient
+                  colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+                  style={styles.viewCoursesButtonGradient}
+                >
+                  <Ionicons name="library" size={20} color={ModernColors.text.inverse} />
+                  <Text style={styles.viewCoursesButtonText}>View My Courses</Text>
+                </LinearGradient>
               </TouchableOpacity>
               
               <TouchableOpacity
@@ -455,6 +538,7 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
                   navigation.goBack();
                 }}
               >
+                <Ionicons name="close" size={20} color={ModernColors.text.secondary} />
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
             </View>
@@ -468,7 +552,7 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: ModernColors.background.secondary,
   },
   scrollView: {
     flex: 1,
@@ -481,7 +565,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontWeight: '500',
   },
   header: {
@@ -490,44 +574,40 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingVertical: 20,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  backIcon: {
-    fontSize: 24,
-    color: '#475569',
-    fontWeight: '300',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1e293b',
+    color: ModernColors.text.primary,
   },
   headerSpacer: {
     width: 40,
   },
   courseCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
     margin: 24,
     padding: 24,
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: ModernColors.shadow.medium,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   courseHeader: {
     flexDirection: 'row',
@@ -538,18 +618,18 @@ const styles = StyleSheet.create({
   courseTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     flex: 1,
     marginRight: 16,
   },
   coursePrice: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#8b5cf6',
+    color: ModernColors.primary.main,
   },
   courseInstructor: {
     fontSize: 14,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     marginBottom: 16,
   },
   courseMeta: {
@@ -558,64 +638,93 @@ const styles = StyleSheet.create({
   },
   metaItem: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  metaIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: ModernColors.background.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  metaContent: {
+    flex: 1,
   },
   metaLabel: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: ModernColors.text.tertiary,
     fontWeight: '500',
     marginBottom: 4,
   },
   metaValue: {
     fontSize: 14,
-    color: '#475569',
+    color: ModernColors.text.primary,
     fontWeight: '500',
   },
   balanceCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
     marginHorizontal: 24,
     marginBottom: 24,
     padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    shadowColor: ModernColors.shadow.medium,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   balanceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  balanceInfo: {
+    flex: 1,
+  },
   balanceLabel: {
     fontSize: 14,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontWeight: '500',
+    marginBottom: 4,
   },
   balanceAmount: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#8b5cf6',
+    color: ModernColors.primary.main,
   },
   insufficientBalance: {
-    color: '#dc2626',
+    color: ModernColors.error.main,
+  },
+  insufficientContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 8,
   },
   insufficientText: {
     fontSize: 12,
-    color: '#dc2626',
-    marginTop: 4,
+    color: ModernColors.error.main,
     fontWeight: '500',
   },
   section: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
     marginHorizontal: 24,
     marginBottom: 16,
     padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    shadowColor: ModernColors.shadow.medium,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     marginBottom: 16,
   },
   paymentSelector: {
@@ -624,53 +733,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#f8fafc',
-    borderRadius: 8,
+    backgroundColor: ModernColors.background.tertiary,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: ModernColors.border.light,
   },
   paymentSelectorContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  paymentIcon: {
-    fontSize: 20,
+  paymentIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: ModernColors.background.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
   paymentText: {
     fontSize: 16,
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     fontWeight: '500',
   },
-  selectorArrow: {
-    fontSize: 18,
-    color: '#64748b',
-    fontWeight: '300',
-  },
   dataSection: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
     marginHorizontal: 24,
     marginBottom: 16,
     padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    shadowColor: ModernColors.shadow.medium,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   dataRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: ModernColors.border.light,
+  },
+  dataIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: ModernColors.background.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   dataLabel: {
     fontSize: 14,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontWeight: '500',
+    flex: 1,
   },
   dataValue: {
     fontSize: 14,
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     fontWeight: '500',
   },
   actionContainer: {
@@ -678,27 +801,26 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   purchaseButton: {
-    backgroundColor: '#8b5cf6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#8b5cf6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
+  purchaseButtonGradient: {
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   disabledButton: {
-    backgroundColor: '#cbd5e1',
-    shadowOpacity: 0,
-    elevation: 0,
+    opacity: 0.6,
   },
   purchaseButtonText: {
-    color: '#ffffff',
+    color: ModernColors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -708,7 +830,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '60%',
@@ -720,25 +842,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: ModernColors.border.light,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1e293b',
+    color: ModernColors.text.primary,
   },
   modalCloseButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: ModernColors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  modalCloseText: {
-    fontSize: 16,
-    color: '#64748b',
-    fontWeight: '500',
   },
   modalScrollView: {
     maxHeight: 300,
@@ -747,31 +864,40 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: ModernColors.border.light,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   selectedPaymentMethodOption: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: ModernColors.background.tertiary,
   },
   paymentOptionContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
-  paymentOptionIcon: {
-    fontSize: 20,
+  paymentOptionIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: ModernColors.background.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
   paymentOptionLabel: {
     fontSize: 16,
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     fontWeight: '500',
   },
   selectedPaymentOptionLabel: {
-    color: '#8b5cf6',
+    color: ModernColors.primary.main,
     fontWeight: '600',
   },
   // Success Modal Styles
   successModalContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 32,
@@ -782,29 +908,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: ModernColors.border.light,
   },
   successIconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#dcfce7',
+    backgroundColor: ModernColors.success.light,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
-  successIcon: {
-    fontSize: 40,
-  },
   successModalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     marginBottom: 8,
   },
   successModalSubtitle: {
     fontSize: 16,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     textAlign: 'center',
   },
   purchaseDetailsContainer: {
@@ -813,20 +936,29 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: ModernColors.border.light,
+  },
+  detailIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: ModernColors.background.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   detailLabel: {
     fontSize: 14,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontWeight: '500',
+    flex: 1,
   },
   detailValue: {
     fontSize: 14,
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     fontWeight: '600',
   },
   successModalActions: {
@@ -834,33 +966,38 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   viewCoursesButton: {
-    backgroundColor: '#8b5cf6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+    borderRadius: 16,
+    overflow: 'hidden',
     marginBottom: 12,
-    shadowColor: '#8b5cf6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
+  viewCoursesButtonGradient: {
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   viewCoursesButtonText: {
-    color: '#ffffff',
+    color: ModernColors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },
   closeButton: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: ModernColors.background.tertiary,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   closeButtonText: {
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontSize: 16,
     fontWeight: '600',
   },

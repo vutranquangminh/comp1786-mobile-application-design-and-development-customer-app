@@ -1,20 +1,24 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { firestoreHelpers } from '../config/firebase';
 import { useAuth } from '../hooks/useFirestore';
+import { ModernColors } from '../constants/Colors';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -57,12 +61,15 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
     fullName: '',
     email: '',
     phone: '',
-    dateOfBirth: '',
+    dateOfBirth: new Date(),
     imageUrl: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
+
+  // Date picker state
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Password visibility states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -101,11 +108,22 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
     if (passedUserData) {
       console.log('✅ EditProfileScreen: Using user data from route params');
       setUserData(passedUserData);
+      
+      // Parse date of birth if it exists
+      let dateOfBirth = new Date();
+      if (passedUserData.DateOfBirth) {
+        try {
+          dateOfBirth = new Date(passedUserData.DateOfBirth);
+        } catch (error) {
+          console.log('⚠️ EditProfileScreen: Invalid date format, using current date');
+        }
+      }
+      
       setFormData({
         fullName: passedUserData.Name || '',
         email: passedUserData.Email || '',
         phone: passedUserData.PhoneNumber || '',
-        dateOfBirth: passedUserData.DateOfBirth || '',
+        dateOfBirth: dateOfBirth,
         imageUrl: passedUserData.ImageUrl || '',
         currentPassword: '',
         newPassword: '',
@@ -115,6 +133,21 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
     } else {
       console.log('❌ EditProfileScreen: No user data in route params');
     }
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setFormData({ ...formData, dateOfBirth: selectedDate });
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
   };
 
   const handleSave = async () => {
@@ -174,7 +207,7 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
         Name: formData.fullName.trim(),
         Email: formData.email.trim(),
         PhoneNumber: formData.phone.trim(),
-        DateOfBirth: formData.dateOfBirth.trim(),
+        DateOfBirth: formatDate(formData.dateOfBirth),
         ImageUrl: formData.imageUrl.trim() || null,
       };
       
@@ -250,20 +283,25 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
         style={styles.keyboardAvoidingView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.backButtonText}>← Back</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>
-              {showPasswordOnly ? 'Change Password' : 'Edit Profile'}
-            </Text>
-            <Text style={styles.subtitle}>
-              {showPasswordOnly ? 'Update your password' : 'Update your information'}
-            </Text>
-          </View>
+          <LinearGradient
+            colors={[ModernColors.background.primary, ModernColors.background.secondary]}
+            style={styles.headerGradient}
+          >
+            <View style={styles.header}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => navigation.goBack()}
+              >
+                <Ionicons name="arrow-back" size={24} color={ModernColors.text.primary} />
+              </TouchableOpacity>
+              <Text style={styles.title}>
+                {showPasswordOnly ? 'Change Password' : 'Edit Profile'}
+              </Text>
+              <Text style={styles.subtitle}>
+                {showPasswordOnly ? 'Update your password' : 'Update your information'}
+              </Text>
+            </View>
+          </LinearGradient>
 
           <View style={styles.form}>
             {/* Profile Fields - Show when editing profile or showing all */}
@@ -274,7 +312,7 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                   <TextInput
                     style={styles.input}
                     placeholder="Enter your full name"
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={ModernColors.text.tertiary}
                     value={formData.fullName}
                     onChangeText={(text) => setFormData({ ...formData, fullName: text })}
                     autoCapitalize="words"
@@ -286,7 +324,7 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                   <TextInput
                     style={styles.input}
                     placeholder="Enter your email"
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={ModernColors.text.tertiary}
                     value={formData.email}
                     onChangeText={(text) => setFormData({ ...formData, email: text })}
                     keyboardType="email-address"
@@ -300,7 +338,7 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                   <TextInput
                     style={styles.input}
                     placeholder="Enter your phone number"
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={ModernColors.text.tertiary}
                     value={formData.phone}
                     onChangeText={(text) => setFormData({ ...formData, phone: text })}
                     keyboardType="phone-pad"
@@ -309,14 +347,25 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
 
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Date of Birth</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="MM/DD/YYYY"
-                    placeholderTextColor="#94a3b8"
-                    value={formData.dateOfBirth}
-                    onChangeText={(text) => setFormData({ ...formData, dateOfBirth: text })}
-                    keyboardType="numeric"
-                  />
+                  <TouchableOpacity
+                    style={styles.dateInput}
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <Text style={styles.dateInputText}>
+                      {formatDate(formData.dateOfBirth)}
+                    </Text>
+                    <Ionicons name="calendar" size={20} color={ModernColors.text.secondary} />
+                  </TouchableOpacity>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={formData.dateOfBirth}
+                      mode="date"
+                      display="default"
+                      onChange={handleDateChange}
+                      maximumDate={new Date()}
+                      minimumDate={new Date(1900, 0, 1)}
+                    />
+                  )}
                 </View>
 
                 <View style={styles.inputContainer}>
@@ -324,7 +373,7 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                   <TextInput
                     style={styles.input}
                     placeholder="Paste image URL from internet (optional)"
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={ModernColors.text.tertiary}
                     value={formData.imageUrl}
                     onChangeText={(text) => setFormData({ ...formData, imageUrl: text })}
                     autoCapitalize="none"
@@ -359,7 +408,7 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                     <TextInput
                       style={styles.passwordInput}
                       placeholder="Enter your current password"
-                      placeholderTextColor="#94a3b8"
+                      placeholderTextColor={ModernColors.text.tertiary}
                       value={formData.currentPassword}
                       onChangeText={(text) => setFormData({ ...formData, currentPassword: text })}
                       secureTextEntry={!showCurrentPassword}
@@ -370,9 +419,11 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                       style={styles.passwordToggle}
                       onPress={() => setShowCurrentPassword(!showCurrentPassword)}
                     >
-                      <Text style={styles.passwordToggleText}>
-                        {showCurrentPassword ? '🙈' : '👁️'}
-                      </Text>
+                      <Ionicons 
+                        name={showCurrentPassword ? 'eye-off' : 'eye'} 
+                        size={20} 
+                        color={ModernColors.text.secondary} 
+                      />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -383,7 +434,7 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                     <TextInput
                       style={styles.passwordInput}
                       placeholder="Enter new password (min 6 characters)"
-                      placeholderTextColor="#94a3b8"
+                      placeholderTextColor={ModernColors.text.tertiary}
                       value={formData.newPassword}
                       onChangeText={(text) => setFormData({ ...formData, newPassword: text })}
                       secureTextEntry={!showNewPassword}
@@ -394,9 +445,11 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                       style={styles.passwordToggle}
                       onPress={() => setShowNewPassword(!showNewPassword)}
                     >
-                      <Text style={styles.passwordToggleText}>
-                        {showNewPassword ? '🙈' : '👁️'}
-                      </Text>
+                      <Ionicons 
+                        name={showNewPassword ? 'eye-off' : 'eye'} 
+                        size={20} 
+                        color={ModernColors.text.secondary} 
+                      />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -407,7 +460,7 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                     <TextInput
                       style={styles.passwordInput}
                       placeholder="Confirm your new password"
-                      placeholderTextColor="#94a3b8"
+                      placeholderTextColor={ModernColors.text.tertiary}
                       value={formData.confirmPassword}
                       onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
                       secureTextEntry={!showConfirmPassword}
@@ -418,9 +471,11 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
                       style={styles.passwordToggle}
                       onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
-                      <Text style={styles.passwordToggleText}>
-                        {showConfirmPassword ? '🙈' : '👁️'}
-                      </Text>
+                      <Ionicons 
+                        name={showConfirmPassword ? 'eye-off' : 'eye'} 
+                        size={20} 
+                        color={ModernColors.text.secondary} 
+                      />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -432,11 +487,19 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
               onPress={handleSave}
               disabled={loading}
             >
-              {loading ? (
-                <ActivityIndicator color="#ffffff" size="small" />
-              ) : (
-                <Text style={styles.saveButtonText}>Save Changes</Text>
-              )}
+              <LinearGradient
+                colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+                style={styles.saveButtonGradient}
+              >
+                {loading ? (
+                  <ActivityIndicator color={ModernColors.text.inverse} size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="save" size={20} color={ModernColors.text.inverse} />
+                    <Text style={styles.saveButtonText}>Save Changes</Text>
+                  </>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -448,40 +511,44 @@ const EditProfileScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: ModernColors.background.secondary,
   },
   keyboardAvoidingView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+  },
+  headerGradient: {
+    paddingTop: 20,
+    paddingBottom: 24,
   },
   header: {
-    marginTop: 20,
-    marginBottom: 40,
+    paddingHorizontal: 24,
   },
   backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#8b5cf6',
-    fontWeight: '500',
   },
   title: {
     fontSize: 28,
-    fontWeight: '600',
-    color: '#1e293b',
+    fontWeight: '700',
+    color: ModernColors.text.primary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
   },
   form: {
     flex: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
   },
   inputContainer: {
     marginBottom: 20,
@@ -489,71 +556,98 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: ModernColors.border.light,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#1e293b',
+    color: ModernColors.text.primary,
+    shadowColor: ModernColors.shadow.light,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  dateInput: {
+    backgroundColor: ModernColors.background.primary,
+    borderWidth: 1,
+    borderColor: ModernColors.border.light,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: ModernColors.shadow.light,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  dateInputText: {
+    fontSize: 16,
+    color: ModernColors.text.primary,
   },
   passwordInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: ModernColors.border.light,
     borderRadius: 12,
+    shadowColor: ModernColors.shadow.light,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   passwordInput: {
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#1e293b',
+    color: ModernColors.text.primary,
   },
   passwordToggle: {
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
-  passwordToggleText: {
-    fontSize: 18,
-  },
   helperText: {
     fontSize: 12,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     marginTop: 4,
     fontStyle: 'italic',
   },
   saveButton: {
-    backgroundColor: '#8b5cf6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+    borderRadius: 16,
+    overflow: 'hidden',
     marginTop: 20,
-    shadowColor: '#8b5cf6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
+  saveButtonGradient: {
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   saveButtonText: {
-    color: '#ffffff',
+    color: ModernColors.text.inverse,
     fontSize: 18,
     fontWeight: '600',
   },
   saveButtonDisabled: {
-    backgroundColor: '#cbd5e1',
-    shadowOpacity: 0,
-    elevation: 0,
+    opacity: 0.6,
   },
   loadingContainer: {
     flex: 1,
@@ -564,25 +658,25 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 20,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: ModernColors.border.light,
     paddingTop: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     marginBottom: 16,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontWeight: '500',
   },
   loadingSubtext: {
     marginTop: 8,
     fontSize: 14,
-    color: '#94a3b8',
+    color: ModernColors.text.tertiary,
     fontWeight: '400',
   },
 });

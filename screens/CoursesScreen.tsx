@@ -1,4 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -13,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CourseCard, { Course } from '../components/CourseCard';
 import { firestoreHelpers } from '../config/firebase';
+import { ModernColors } from '../constants/Colors';
 import { useAuth, useFirestore } from '../hooks/useFirestore';
 
 type RootStackParamList = {
@@ -164,7 +167,7 @@ const CoursesScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8b5cf6" />
+          <ActivityIndicator size="large" color={ModernColors.primary.main} />
           <Text style={styles.loadingText}>Loading courses...</Text>
         </View>
       </SafeAreaView>
@@ -173,67 +176,90 @@ const CoursesScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Modern Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Courses</Text>
-        
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search your purchased courses..."
-            placeholderTextColor="#94a3b8"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          {searchQuery.length > 0 && (
+      {/* Modern Header with Gradient */}
+      <LinearGradient
+        colors={[ModernColors.background.primary, ModernColors.background.secondary]}
+        style={styles.headerGradient}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <Text style={styles.headerTitle}>My Courses</Text>
+            <Text style={styles.headerSubtitle}>Your purchased courses</Text>
+          </View>
+          
+          {/* Enhanced Search Bar */}
+          <View style={styles.searchContainer}>
+            <View style={styles.searchIconContainer}>
+              <Ionicons name="search" size={18} color={ModernColors.text.tertiary} />
+            </View>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search your purchased courses..."
+              placeholderTextColor={ModernColors.text.tertiary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setSearchQuery('')}
+              >
+                <Ionicons name="close" size={16} color={ModernColors.text.secondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Modern Course Type Toggle */}
+          <View style={styles.courseTypeToggleContainer}>
             <TouchableOpacity
-              style={styles.clearButton}
-              onPress={() => setSearchQuery('')}
+              style={[
+                styles.courseTypeToggleOption,
+                courseType === 'public' && styles.courseTypeToggleOptionSelected
+              ]}
+              onPress={() => setCourseType('public')}
             >
-              <Text style={styles.clearButtonText}>✕</Text>
+              <Ionicons 
+                name="people" 
+                size={16} 
+                color={courseType === 'public' ? ModernColors.primary.main : ModernColors.text.inverse} 
+                style={styles.toggleIcon}
+              />
+              <Text style={[
+                styles.courseTypeToggleText,
+                courseType === 'public' && styles.courseTypeToggleTextSelected
+              ]}>
+                Public Class
+              </Text>
             </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.courseTypeToggleOption,
+                courseType === 'private' && styles.courseTypeToggleOptionSelected
+              ]}
+              onPress={() => setCourseType('private')}
+            >
+              <Ionicons 
+                name="person" 
+                size={16} 
+                color={courseType === 'private' ? ModernColors.primary.main : ModernColors.text.inverse} 
+                style={styles.toggleIcon}
+              />
+              <Text style={[
+                styles.courseTypeToggleText,
+                courseType === 'private' && styles.courseTypeToggleTextSelected
+              ]}>
+                Private Class
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {error && (
+            <Text style={styles.errorText}>Error: {error}</Text>
           )}
         </View>
-
-        {/* Course Type Toggle */}
-        <View style={styles.courseTypeToggleContainer}>
-          <TouchableOpacity
-            style={[
-              styles.courseTypeToggleOption,
-              courseType === 'public' && styles.courseTypeToggleOptionSelected
-            ]}
-            onPress={() => setCourseType('public')}
-          >
-            <Text style={[
-              styles.courseTypeToggleText,
-              courseType === 'public' && styles.courseTypeToggleTextSelected
-            ]}>
-              Public Class
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[
-              styles.courseTypeToggleOption,
-              courseType === 'private' && styles.courseTypeToggleOptionSelected
-            ]}
-            onPress={() => setCourseType('private')}
-          >
-            <Text style={[
-              styles.courseTypeToggleText,
-              courseType === 'private' && styles.courseTypeToggleTextSelected
-            ]}>
-              Private Class
-            </Text>
-          </TouchableOpacity>
-        </View>
-        {error && (
-          <Text style={styles.errorText}>Error: {error}</Text>
-        )}
-      </View>
+      </LinearGradient>
 
       <ScrollView
         style={styles.scrollView}
@@ -244,24 +270,28 @@ const CoursesScreen: React.FC<Props> = ({ navigation }) => {
         }
       >
         {filteredCourses.length > 0 ? (
-          filteredCourses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              showBuyButton={false}
-              showLearnButton={true}
-              onLearnPress={(course) => {
-                // Navigate to course learning interface
-                navigation.navigate('CourseDetail', { courseId: course.id });
-              }}
-              onPress={(course) => {
-                navigation.navigate('CourseDetail', { courseId: course.id });
-              }}
-            />
-          ))
+          <View style={styles.cardsContainer}>
+            {filteredCourses.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                showBuyButton={false}
+                showLearnButton={true}
+                onLearnPress={(course) => {
+                  // Navigate to course learning interface
+                  navigation.navigate('CourseDetail', { courseId: course.id });
+                }}
+                onPress={(course) => {
+                  navigation.navigate('CourseDetail', { courseId: course.id });
+                }}
+              />
+            ))}
+          </View>
         ) : searchQuery.length > 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateEmoji}>🔍</Text>
+            <View style={styles.emptyStateIcon}>
+              <Ionicons name="search" size={32} color={ModernColors.text.tertiary} />
+            </View>
             <Text style={styles.emptyStateTitle}>No Results Found</Text>
             <Text style={styles.emptyStateText}>
               Try adjusting your search terms or browse all available courses.
@@ -269,7 +299,9 @@ const CoursesScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateEmoji}>📚</Text>
+            <View style={styles.emptyStateIcon}>
+              <Ionicons name="library" size={32} color={ModernColors.text.tertiary} />
+            </View>
             <Text style={styles.emptyStateTitle}>No Purchased Courses</Text>
             <Text style={styles.emptyStateText}>
               Purchase courses from the Home tab to see them here
@@ -284,82 +316,98 @@ const CoursesScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: ModernColors.background.secondary,
+  },
+  headerGradient: {
+    paddingTop: 20,
+    paddingBottom: 24,
   },
   header: {
     paddingHorizontal: 24,
-    paddingVertical: 20,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+  },
+  headerTop: {
+    marginBottom: 24,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#1e293b',
+    fontSize: 32,
+    fontWeight: '700',
+    color: ModernColors.text.primary,
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#64748b',
-    marginBottom: 16,
+    fontSize: 16,
+    color: ModernColors.text.secondary,
+    fontWeight: '400',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
+    backgroundColor: ModernColors.background.primary,
+    borderRadius: 16,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    height: 48,
-    marginBottom: 16,
+    borderColor: ModernColors.border.light,
+    height: 56,
+    marginBottom: 20,
+    shadowColor: ModernColors.shadow.light,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  searchIconContainer: {
+    marginRight: 12,
   },
   courseTypeToggleContainer: {
     flexDirection: 'row',
-    backgroundColor: '#8b5cf6',
-    borderRadius: 12,
+    backgroundColor: ModernColors.background.tertiary,
+    borderRadius: 16,
     padding: 4,
     marginBottom: 16,
   },
   courseTypeToggleOption: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
   },
   courseTypeToggleOptionSelected: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  toggleIcon: {
+    marginRight: 4,
   },
   courseTypeToggleText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: ModernColors.text.secondary,
   },
   courseTypeToggleTextSelected: {
-    color: '#8b5cf6',
+    color: ModernColors.primary.main,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     paddingVertical: 0,
   },
   clearButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: ModernColors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
-  },
-  clearButtonText: {
-    fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
   },
   scrollView: {
     flex: 1,
@@ -368,26 +416,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 20,
   },
+  cardsContainer: {
+    gap: 16,
+  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
   },
-  emptyStateEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
+  emptyStateIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: ModernColors.background.tertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   emptyStateTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1e293b',
+    color: ModernColors.text.primary,
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 20,
@@ -400,12 +456,12 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontWeight: '500',
   },
   errorText: {
     fontSize: 14,
-    color: '#dc2626',
+    color: ModernColors.error.main,
     marginTop: 8,
     fontWeight: '500',
   },

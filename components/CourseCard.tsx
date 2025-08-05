@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import {
     Image,
@@ -6,6 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { ModernColors } from '../constants/Colors';
 
 export interface Course {
   id: string;
@@ -54,14 +57,17 @@ const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.8}>
       <View style={styles.imageContainer}>
         {course.imageUrl ? (
           <Image source={{ uri: course.imageUrl }} style={styles.image} />
         ) : (
-          <View style={styles.imagePlaceholder}>
-            <Text style={styles.imagePlaceholderText}>🧘‍♀️</Text>
-          </View>
+          <LinearGradient
+            colors={[ModernColors.primary.light, ModernColors.primary.main]}
+            style={styles.imagePlaceholder}
+          >
+            <Ionicons name="flower" size={48} color={ModernColors.text.inverse} />
+          </LinearGradient>
         )}
         <View style={styles.levelBadge}>
           <Text style={styles.levelText}>{course.level}</Text>
@@ -69,35 +75,44 @@ const CourseCard: React.FC<CourseCardProps> = ({
       </View>
 
       <View style={styles.content}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>
-            {course.title}
-          </Text>
-          <Text style={styles.duration}>{course.duration}</Text>
-        </View>
+        <Text style={styles.title} numberOfLines={2}>
+          {course.title}
+        </Text>
         
-        <View style={styles.instructorRow}>
-          <Text style={styles.instructor} numberOfLines={1}>
-            by {course.instructor}
-          </Text>
-          <Text style={styles.price}>${course.price}</Text>
-        </View>
+        <Text style={styles.instructor} numberOfLines={1}>
+          {course.instructor}
+        </Text>
         
         <Text style={styles.description} numberOfLines={2}>
           {course.description}
         </Text>
 
-        {showBuyButton && (
-          <TouchableOpacity style={styles.buyButton} onPress={handleBuyPress}>
-            <Text style={styles.buyButtonText}>Buy Now</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.bottomRow}>
+          <Text style={styles.price}>${course.price}</Text>
+          <Text style={styles.duration}>{course.duration}</Text>
+          
+          {showBuyButton && (
+            <TouchableOpacity style={styles.buyButton} onPress={handleBuyPress}>
+              <LinearGradient
+                colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+                style={styles.buyButtonGradient}
+              >
+                <Text style={styles.buyButtonText}>Buy</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
 
-        {showLearnButton && (
-          <TouchableOpacity style={styles.learnButton} onPress={handleLearnPress}>
-            <Text style={styles.learnButtonText}>Learn</Text>
-          </TouchableOpacity>
-        )}
+          {showLearnButton && (
+            <TouchableOpacity style={styles.learnButton} onPress={handleLearnPress}>
+              <LinearGradient
+                colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+                style={styles.learnButtonGradient}
+              >
+                <Text style={styles.learnButtonText}>Learn</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -105,17 +120,17 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
+    backgroundColor: ModernColors.background.card,
+    borderRadius: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: ModernColors.shadow.medium,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
     overflow: 'hidden',
   },
   imageContainer: {
@@ -123,94 +138,109 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 160,
+    height: 180,
     resizeMode: 'cover',
   },
   imagePlaceholder: {
     width: '100%',
-    height: 160,
-    backgroundColor: '#e8f5e8',
+    height: 180,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  imagePlaceholderText: {
-    fontSize: 60,
-  },
   levelBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: 'rgba(139, 92, 246, 0.9)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    top: 16,
+    right: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    shadowColor: ModernColors.shadow.medium,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   levelText: {
-    color: '#ffffff',
+    color: ModernColors.primary.main,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   content: {
-    padding: 16,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
+    padding: 20,
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    flex: 1,
-    marginRight: 12,
-  },
-  instructorRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    fontWeight: '700',
+    color: ModernColors.text.primary,
+    lineHeight: 24,
     marginBottom: 8,
   },
   instructor: {
     fontSize: 14,
-    color: '#7f8c8d',
-    flex: 1,
-    marginRight: 12,
-  },
-  price: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#8b5cf6',
+    color: ModernColors.text.secondary,
+    fontWeight: '500',
+    marginBottom: 12,
   },
   description: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: ModernColors.text.secondary,
     lineHeight: 20,
+    marginBottom: 16,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  price: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: ModernColors.primary.main,
+  },
+  duration: {
+    fontSize: 14,
+    color: ModernColors.text.secondary,
+    fontWeight: '500',
   },
   buyButton: {
-    backgroundColor: '#8b5cf6',
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  buyButtonGradient: {
     paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: 24,
     alignItems: 'center',
   },
   buyButtonText: {
-    color: '#ffffff',
+    color: ModernColors.text.inverse,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   learnButton: {
-    backgroundColor: '#8b5cf6',
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  learnButtonGradient: {
     paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: 24,
     alignItems: 'center',
-    marginTop: 8,
   },
   learnButtonText: {
-    color: '#ffffff',
+    color: ModernColors.text.inverse,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
 

@@ -5,6 +5,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { ModernColors } from '../constants/Colors';
 
 export interface Teacher {
   id: string;
@@ -35,29 +38,33 @@ const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, onBookPress }) => {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {teacher.name.split(' ').map(n => n[0]).join('')}
-          </Text>
-        </View>
+        <LinearGradient
+          colors={[ModernColors.primary.light, ModernColors.primary.main]}
+          style={styles.avatar}
+        >
+          <Ionicons name="person" size={32} color={ModernColors.text.inverse} />
+        </LinearGradient>
         <View style={styles.info}>
           <Text style={styles.name}>{teacher.name}</Text>
-          <Text style={styles.experience}>{teacher.experience} years experience</Text>
+          <Text style={styles.experience}>{teacher.experience} years</Text>
         </View>
       </View>
       
       <View style={styles.details}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Started Teaching:</Text>
-          <Text style={styles.detailValue}>{formatDate(teacher.dateStartedTeaching)}</Text>
-        </View>
+        <Text style={styles.detailValue}>{formatDate(teacher.dateStartedTeaching)}</Text>
       </View>
 
       <TouchableOpacity 
         style={styles.bookButton}
         onPress={() => onBookPress(teacher)}
+        activeOpacity={0.8}
       >
-        <Text style={styles.bookButtonText}>Book Private Class</Text>
+        <LinearGradient
+          colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+          style={styles.bookButtonGradient}
+        >
+          <Text style={styles.bookButtonText}>Book</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </View>
   );
@@ -65,89 +72,76 @@ const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, onBookPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: ModernColors.background.card,
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 16,
-    shadowColor: '#000000',
+    shadowColor: ModernColors.shadow.medium,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#8b5cf6',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
-  },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#ffffff',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   info: {
     flex: 1,
   },
   name: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: 4,
+    fontWeight: '700',
+    color: ModernColors.text.primary,
+    marginBottom: 6,
   },
   experience: {
     fontSize: 14,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontWeight: '500',
   },
   details: {
-    marginBottom: 20,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
+    marginBottom: 24,
   },
   detailValue: {
     fontSize: 14,
-    color: '#1e293b',
-    fontWeight: '600',
+    color: ModernColors.text.secondary,
+    fontWeight: '500',
   },
   bookButton: {
-    backgroundColor: '#8b5cf6',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#8b5cf6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
+  bookButtonGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
   bookButtonText: {
-    color: '#ffffff',
+    color: ModernColors.text.inverse,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
 

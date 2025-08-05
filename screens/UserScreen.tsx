@@ -1,5 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -13,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { firestoreHelpers } from '../config/firebase';
+import { ModernColors } from '../constants/Colors';
 import { useAuth } from '../hooks/useFirestore';
 
 type RootStackParamList = {
@@ -154,7 +157,7 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8b5cf6" />
+          <ActivityIndicator size="large" color={ModernColors.primary.main} />
           <Text style={styles.loadingText}>Loading user data...</Text>
           <Text style={styles.loadingSubtext}>
             {user ? `Logged in as: ${user.Email}` : 'No user in auth state'}
@@ -190,9 +193,11 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Simple Header */}
-        <View style={styles.header}>
-          <View style={styles.headerBackground} />
+        {/* Modern Header */}
+        <LinearGradient
+          colors={[ModernColors.primary.light, ModernColors.primary.main]}
+          style={styles.header}
+        >
           <View style={styles.headerContent}>
             <View style={styles.avatarContainer}>
               {userData.ImageUrl ? (
@@ -209,30 +214,31 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
                   />
                   {imageLoading && (
                     <View style={styles.imageLoadingOverlay}>
-                      <ActivityIndicator size="small" color="#8b5cf6" />
+                      <ActivityIndicator size="small" color={ModernColors.text.inverse} />
                     </View>
                   )}
                 </View>
               ) : (
                 <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {userData.Name.split(' ').map(n => n[0]).join('')}
-                  </Text>
+                  <Ionicons name="person" size={48} color={ModernColors.text.inverse} />
                 </View>
               )}
             </View>
             <Text style={styles.name}>{userData.Name}</Text>
-            <Text style={styles.memberSince}>{formatDate(userData.DateCreated)}</Text>
+            <Text style={styles.memberSince}>Member since {formatDate(userData.DateCreated)}</Text>
           </View>
-        </View>
+        </LinearGradient>
 
-        {/* Balance Card with Transaction Button */}
+        {/* Balance Card */}
         <View style={styles.balanceCard}>
           <View style={styles.balanceRow}>
-            <Text style={styles.balanceLabel}>Available Balance</Text>
-            <Text style={styles.balanceAmount}>
-              ${userData.Balance ? userData.Balance.toFixed(2) : '0.00'}
-            </Text>
+            <View style={styles.balanceInfo}>
+              <Text style={styles.balanceLabel}>Available Balance</Text>
+              <Text style={styles.balanceAmount}>
+                ${userData.Balance ? userData.Balance.toFixed(2) : '0.00'}
+              </Text>
+            </View>
+            <Ionicons name="wallet" size={24} color={ModernColors.primary.main} />
           </View>
           <TouchableOpacity 
             style={styles.transactionsButton}
@@ -240,31 +246,55 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
               (navigation as any).navigate('Transactions');
             }}
           >
-            <Text style={styles.transactionsButtonText}>View Transaction History</Text>
+            <LinearGradient
+              colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+              style={styles.transactionsButtonGradient}
+            >
+              <Ionicons name="list" size={20} color={ModernColors.text.inverse} />
+              <Text style={styles.transactionsButtonText}>View Transaction History</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
-        {/* Simple Information Section */}
+        {/* Information Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Information</Text>
             <TouchableOpacity 
-              style={styles.editIcon}
+              style={styles.editButton}
               onPress={() => {
                 (navigation as any).navigate('EditProfile', { userData: userData, focusPassword: false });
               }}
             >
-              <Text style={styles.editIconText}>✏️</Text>
+              <Ionicons name="create" size={20} color={ModernColors.primary.main} />
             </TouchableOpacity>
           </View>
           <View style={styles.infoContainer}>
-            {renderInfoRow('Email', userData.Email)}
-            {renderInfoRow('Phone', userData.PhoneNumber)}
-            {renderInfoRow('Birth', userData.DateOfBirth)}
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Ionicons name="mail" size={16} color={ModernColors.text.tertiary} />
+              </View>
+              <Text style={styles.infoLabel}>Email</Text>
+              <Text style={styles.infoValue}>{userData.Email}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Ionicons name="call" size={16} color={ModernColors.text.tertiary} />
+              </View>
+              <Text style={styles.infoLabel}>Phone</Text>
+              <Text style={styles.infoValue}>{userData.PhoneNumber}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Ionicons name="calendar" size={16} color={ModernColors.text.tertiary} />
+              </View>
+              <Text style={styles.infoLabel}>Birth</Text>
+              <Text style={styles.infoValue}>{userData.DateOfBirth}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Simple Action Buttons */}
+        {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity 
             style={styles.changePasswordButton} 
@@ -272,10 +302,17 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
               (navigation as any).navigate('EditProfile', { userData: userData, focusPassword: true });
             }}
           >
-            <Text style={styles.changePasswordText}>Password</Text>
+            <LinearGradient
+              colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+              style={styles.changePasswordButtonGradient}
+            >
+              <Ionicons name="lock-closed" size={20} color={ModernColors.text.inverse} />
+              <Text style={styles.changePasswordText}>Change Password</Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Ionicons name="log-out" size={20} color={ModernColors.primary.main} />
             <Text style={styles.logoutButtonText}>Logout</Text>
           </TouchableOpacity>
         </View>
@@ -287,7 +324,7 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: ModernColors.background.secondary,
   },
   scrollView: {
     flex: 1,
@@ -296,66 +333,41 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   header: {
-    position: 'relative',
-    paddingVertical: 20,
+    paddingVertical: 40,
     paddingHorizontal: 24,
-    backgroundColor: '#ffffff',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  headerBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#8b5cf6',
-    opacity: 0.1,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   headerContent: {
     alignItems: 'center',
-    zIndex: 1,
   },
   avatarContainer: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   avatar: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: '#8b5cf6',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8b5cf6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
+    shadowColor: ModernColors.shadow.medium,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
     borderWidth: 3,
-    borderColor: '#ffffff',
-  },
-  avatarText: {
-    fontSize: 60,
-    fontWeight: '600',
-    color: '#ffffff',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   avatarImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   imageLoadingOverlay: {
     position: 'absolute',
@@ -363,153 +375,179 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-    borderRadius: 75,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
   name: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1e293b',
+    color: ModernColors.text.inverse,
     marginBottom: 4,
     textAlign: 'center',
   },
-  memberBadge: {
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
   memberSince: {
     fontSize: 14,
-    color: '#64748b',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontWeight: '500',
   },
+  balanceCard: {
+    backgroundColor: ModernColors.background.primary,
+    marginHorizontal: 24,
+    marginTop: 20,
+    marginBottom: 16,
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: ModernColors.shadow.medium,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  balanceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  balanceInfo: {
+    flex: 1,
+  },
+  balanceLabel: {
+    fontSize: 14,
+    color: ModernColors.text.secondary,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  balanceAmount: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: ModernColors.primary.main,
+  },
+  transactionsButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  transactionsButtonGradient: {
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  transactionsButtonText: {
+    color: ModernColors.text.inverse,
+    fontSize: 16,
+    fontWeight: '600',
+  },
   section: {
-    backgroundColor: '#ffffff',
+    backgroundColor: ModernColors.background.primary,
     marginHorizontal: 24,
     marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderRadius: 16,
+    shadowColor: ModernColors.shadow.medium,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1e293b',
+    fontSize: 18,
+    fontWeight: '700',
+    color: ModernColors.text.primary,
   },
-  editIcon: {
+  editButton: {
     padding: 8,
-  },
-  editIconText: {
-    fontSize: 20,
+    borderRadius: 8,
+    backgroundColor: ModernColors.background.tertiary,
   },
   infoContainer: {
-    gap: 8,
+    gap: 12,
   },
   infoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f3f4',
+    borderBottomColor: ModernColors.border.light,
+  },
+  infoIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: ModernColors.background.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   infoLabel: {
     fontSize: 16,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontWeight: '500',
+    flex: 1,
   },
   infoValue: {
     fontSize: 16,
-    color: '#1e293b',
-    fontWeight: '500',
+    color: ModernColors.text.primary,
+    fontWeight: '600',
     flex: 1,
     textAlign: 'right',
-  },
-  settingButton: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f3f4',
-  },
-  settingButtonText: {
-    fontSize: 16,
-    color: '#1e293b',
-    fontWeight: '500',
   },
   actionButtonsContainer: {
     marginHorizontal: 24,
     marginTop: 16,
-    gap: 16,
+    gap: 12,
   },
   changePasswordButton: {
-    backgroundColor: '#8b5cf6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#8b5cf6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
+  changePasswordButtonGradient: {
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   changePasswordText: {
-    color: '#ffffff',
+    color: ModernColors.text.inverse,
     fontSize: 16,
     fontWeight: '600',
   },
   logoutButton: {
     backgroundColor: 'transparent',
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#8b5cf6',
+    borderColor: ModernColors.primary.main,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   logoutButtonText: {
-    color: '#8b5cf6',
+    color: ModernColors.primary.main,
     fontSize: 16,
     fontWeight: '600',
-  },
-  balanceCard: {
-    backgroundColor: '#ffffff',
-    marginHorizontal: 24,
-    marginTop: 12,
-    marginBottom: 16,
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    gap: 16,
-  },
-  balanceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  balanceLabel: {
-    fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  balanceAmount: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#8b5cf6',
   },
   loadingContainer: {
     flex: 1,
@@ -519,53 +557,14 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#64748b',
+    color: ModernColors.text.secondary,
     fontWeight: '500',
   },
   loadingSubtext: {
     marginTop: 5,
     fontSize: 14,
-    color: '#94a3b8',
+    color: ModernColors.text.tertiary,
     textAlign: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#dc2626',
-    fontWeight: '500',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#64748b',
-  },
-  transactionsButton: {
-    backgroundColor: '#8b5cf6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#8b5cf6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  transactionsButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 
