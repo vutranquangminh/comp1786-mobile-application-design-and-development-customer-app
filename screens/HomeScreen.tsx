@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CourseCard, { Course } from '../components/CourseCard';
+import TeacherCard, { Teacher } from '../components/TeacherCard';
 import { firestoreHelpers } from '../config/firebase';
 import { useAuth, useFirestore } from '../hooks/useFirestore';
 
@@ -37,6 +38,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTab, setSelectedTab] = useState<'course' | 'teacher'>('course');
+  const [unpurchasedCourses, setUnpurchasedCourses] = useState<Course[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
   const { getCollection, loading: firestoreLoading, error } = useFirestore();
   const { user } = useAuth();
 
@@ -71,6 +76,62 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       course.description.toLowerCase().includes(lowercaseQuery) ||
       course.level.toLowerCase().includes(lowercaseQuery)
     );
+  };
+
+  // Function to filter teachers based on search query
+  const filterTeachers = (teachers: Teacher[], query: string) => {
+    if (!query.trim()) {
+      return teachers;
+    }
+    
+    const lowercaseQuery = query.toLowerCase();
+    return teachers.filter(teacher => 
+      teacher.name.toLowerCase().includes(lowercaseQuery) ||
+      teacher.experience.toLowerCase().includes(lowercaseQuery)
+    );
+  };
+
+  // Function to get courses that user hasn't bought yet
+  const getUnpurchasedCourses = async () => {
+    try {
+      const currentUserId = user?.Id;
+      
+      if (!currentUserId) {
+        // If no user, show all courses
+        return courses;
+      }
+
+      // Get user's purchased courses
+      const purchasedCourses = await firestoreHelpers.queryDocuments('course_customer_crossrefs', [
+        { field: 'CustomerId', operator: '==', value: currentUserId }
+      ]);
+
+      // Get IDs of purchased courses
+      const purchasedCourseIds = purchasedCourses.map((purchase: any) => purchase.CourseId.toString());
+
+      // Filter out purchased courses
+      return courses.filter(course => !purchasedCourseIds.includes(course.id));
+    } catch (error) {
+      console.error('Error getting unpurchased courses:', error);
+      return courses; // Return all courses if there's an error
+    }
+  };
+
+  // Function to load teachers
+  const loadTeachers = async () => {
+    try {
+      const teachersData = await getCollection('teachers');
+      const transformedTeachers: Teacher[] = teachersData.map((teacher: any) => ({
+        id: teacher.Id.toString(),
+        name: teacher.Name,
+        experience: teacher.Experience,
+        dateStartedTeaching: teacher.DateStartedTeaching,
+      }));
+      setTeachers(transformedTeachers);
+      setFilteredTeachers(transformedTeachers);
+    } catch (error) {
+      console.error('Error loading teachers:', error);
+    }
   };
 
   const loadCourses = async () => {
@@ -134,6 +195,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       );
       
       setCourses(transformedCourses);
+      setUnpurchasedCourses(transformedCourses);
       setFilteredCourses(transformedCourses);
     } catch (error) {
       // Handle error silently
@@ -150,6 +212,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   useEffect(() => {
     loadCourses();
+    loadTeachers();
   }, []);
 
   // Reload courses when user changes
@@ -159,27 +222,31 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, [user]);
 
-  // Filter courses when search query changes
+  // Filter courses and teachers when search query changes or tab changes
   useEffect(() => {
-    const filtered = filterCourses(courses, searchQuery);
-    setFilteredCourses(filtered);
-  }, [searchQuery, courses]);
+    if (selectedTab === 'course') {
+      const filtered = filterCourses(unpurchasedCourses, searchQuery);
+      setFilteredCourses(filtered);
+    } else {
+      const filtered = filterTeachers(teachers, searchQuery);
+      setFilteredTeachers(filtered);
+    }
+  }, [searchQuery, unpurchasedCourses, teachers, selectedTab]);
 
   const handleBuyPress = (course: Course) => {
     navigation.navigate('Buy', { course });
   };
 
+  const handleBookPress = (teacher: Teacher) => {
+    // For now, show an alert. You can implement navigation to a booking screen later
+    alert(`Booking private class with ${teacher.name}`);
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Discover Courses</Text>
-          <Text style={styles.subtitle}>
-            Explore our collection of yoga courses
-          </Text>
-        </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#27ae60" />
+          <ActivityIndicator size="large" color="#8b5cf6" />
           <Text style={styles.loadingText}>Loading courses...</Text>
         </View>
       </SafeAreaView>
@@ -188,18 +255,16 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Modern Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Discover Courses</Text>
-        <Text style={styles.subtitle}>
-          Available courses you can purchase
-        </Text>
+        <Text style={styles.headerTitle}>Discover Courses</Text>
         
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
             placeholder="Search courses, instructors, or topics..."
-            placeholderTextColor="#999"
+            placeholderTextColor="#94a3b8"
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
@@ -214,6 +279,41 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Toggle Bar */}
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.toggleOption,
+              selectedTab === 'course' && styles.toggleOptionSelected
+            ]}
+            onPress={() => setSelectedTab('course')}
+          >
+            <Text style={[
+              styles.toggleText,
+              selectedTab === 'course' && styles.toggleTextSelected
+            ]}>
+              Course
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.toggleOption,
+              selectedTab === 'teacher' && styles.toggleOptionSelected
+            ]}
+            onPress={() => setSelectedTab('teacher')}
+          >
+            <Text style={[
+              styles.toggleText,
+              selectedTab === 'teacher' && styles.toggleTextSelected
+            ]}>
+              Teacher
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+
         {error && (
           <Text style={styles.errorText}>Error: {error}</Text>
         )}
@@ -227,31 +327,61 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {filteredCourses.length > 0 ? (
-          filteredCourses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              showBuyButton={true}
-              onBuyPress={handleBuyPress}
-            />
-          ))
-        ) : searchQuery.length > 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateEmoji}>🔍</Text>
-            <Text style={styles.emptyStateTitle}>No Results Found</Text>
-            <Text style={styles.emptyStateText}>
-              Try adjusting your search terms or browse all available courses.
-            </Text>
-          </View>
+        {selectedTab === 'course' ? (
+          // Course Tab Content
+          filteredCourses.length > 0 ? (
+            filteredCourses.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                showBuyButton={true}
+                onBuyPress={handleBuyPress}
+              />
+            ))
+          ) : searchQuery.length > 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateEmoji}>🔍</Text>
+              <Text style={styles.emptyStateTitle}>No Courses Found</Text>
+              <Text style={styles.emptyStateText}>
+                Try adjusting your search terms or browse all available courses.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateEmoji}>🎉</Text>
+              <Text style={styles.emptyStateTitle}>All Caught Up!</Text>
+              <Text style={styles.emptyStateText}>
+                You've purchased all available courses. Check back soon for new content!
+              </Text>
+            </View>
+          )
         ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateEmoji}>🎉</Text>
-            <Text style={styles.emptyStateTitle}>All Caught Up!</Text>
-            <Text style={styles.emptyStateText}>
-              You've purchased all available courses. Check back soon for new content!
-            </Text>
-          </View>
+          // Teacher Tab Content
+          filteredTeachers.length > 0 ? (
+            filteredTeachers.map((teacher) => (
+              <TeacherCard
+                key={teacher.id}
+                teacher={teacher}
+                onBookPress={handleBookPress}
+              />
+            ))
+          ) : searchQuery.length > 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateEmoji}>🔍</Text>
+              <Text style={styles.emptyStateTitle}>No Teachers Found</Text>
+              <Text style={styles.emptyStateText}>
+                Try adjusting your search terms or browse all available teachers.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateEmoji}>👨‍🏫</Text>
+              <Text style={styles.emptyStateTitle}>No Teachers Available</Text>
+              <Text style={styles.emptyStateText}>
+                Check back soon for available teachers!
+              </Text>
+            </View>
+          )
         )}
       </ScrollView>
     </SafeAreaView>
@@ -261,51 +391,82 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f8fafc',
   },
   header: {
     paddingHorizontal: 24,
     paddingVertical: 20,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e1e8ed',
+    borderBottomColor: '#e2e8f0',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#1e293b',
     marginBottom: 4,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#7f8c8d',
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 16,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f8fafc',
     borderRadius: 12,
-    marginTop: 16,
-    marginBottom: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#e1e8ed',
+    borderColor: '#e2e8f0',
+    height: 48,
+    marginBottom: 16,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#8b5cf6',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+  },
+  toggleOption: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleOptionSelected: {
+    backgroundColor: '#ffffff',
+  },
+  toggleText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  toggleTextSelected: {
+    color: '#8b5cf6',
   },
   searchInput: {
     flex: 1,
-    height: 44,
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#1e293b',
     paddingVertical: 0,
   },
   clearButton: {
-    padding: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginLeft: 8,
   },
   clearButtonText: {
-    fontSize: 18,
-    color: '#7f8c8d',
-    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
   },
   scrollView: {
     flex: 1,
@@ -321,21 +482,21 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyStateEmoji: {
-    fontSize: 80,
-    marginBottom: 20,
+    fontSize: 64,
+    marginBottom: 16,
   },
   emptyStateTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 12,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 8,
     textAlign: 'center',
   },
   emptyStateText: {
-    fontSize: 16,
-    color: '#7f8c8d',
+    fontSize: 14,
+    color: '#64748b',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 20,
     paddingHorizontal: 20,
   },
   loadingContainer: {
@@ -344,14 +505,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 10,
+    marginTop: 16,
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#64748b',
+    fontWeight: '500',
   },
   errorText: {
     fontSize: 14,
-    color: '#e74c3c',
+    color: '#dc2626',
     marginTop: 8,
+    fontWeight: '500',
   },
 });
 

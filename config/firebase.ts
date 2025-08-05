@@ -147,7 +147,8 @@ export const authHelpers = {
         PhoneNumber: userData.phone,
         DateOfBirth: userData.dateOfBirth,
         DateCreated: new Date().toISOString().split('T')[0],
-        ImageUrl: null
+        ImageUrl: null,
+        Balance: 0
       };
 
       const docRef = await firestoreHelpers.addDocument('customers', newUser);

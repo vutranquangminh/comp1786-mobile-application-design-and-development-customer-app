@@ -2,9 +2,11 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import BuyScreen from '../../screens/BuyScreen';
 import CourseDetailScreen from '../../screens/CourseDetailScreen';
+import EditProfileScreen from '../../screens/EditProfileScreen';
 import LoginScreen from '../../screens/LoginScreen';
 import SignUpScreen from '../../screens/SignUpScreen';
 import TestFirestoreScreen from '../../screens/TestFirestoreScreen';
+import TransactionScreen from '../../screens/TransactionScreen';
 import WelcomeScreen from '../../screens/WelcomeScreen';
 import MainTabNavigator from './MainTabNavigator';
 
@@ -15,7 +17,9 @@ export type RootStackParamList = {
   MainTabs: undefined;
   CourseDetail: { courseId: string };
   Buy: { course: any };
+  EditProfile: { userData: any; focusPassword?: boolean };
   TestFirestore: undefined;
+  Transactions: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -80,8 +84,22 @@ const RootStackNavigator: React.FC = () => {
         }}
       />
       <Stack.Screen 
+        name="EditProfile" 
+        component={EditProfileScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen 
         name="TestFirestore" 
         component={TestFirestoreScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen 
+        name="Transactions" 
+        component={TransactionScreen}
         options={{
           headerShown: false,
         }}

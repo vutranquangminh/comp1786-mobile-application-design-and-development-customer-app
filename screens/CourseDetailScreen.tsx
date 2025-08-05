@@ -1,13 +1,13 @@
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
-    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFirestore } from '../hooks/useFirestore';
@@ -82,7 +82,7 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#27ae60" />
+          <ActivityIndicator size="large" color="#8b5cf6" />
           <Text style={styles.loadingText}>Loading course details...</Text>
         </View>
       </SafeAreaView>
@@ -202,7 +202,7 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#27ae60',
+    color: '#8b5cf6',
     fontWeight: '500',
   },
   courseContainer: {
@@ -233,18 +233,18 @@ const styles = StyleSheet.create({
       height: 2,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 4,
   },
   courseTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#1e293b',
     marginBottom: 8,
   },
   courseInstructor: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#64748b',
     marginBottom: 20,
   },
   courseStats: {
@@ -257,13 +257,13 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#7f8c8d',
+    color: '#64748b',
     marginBottom: 4,
   },
   statValue: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#1e293b',
   },
   section: {
     backgroundColor: '#ffffff',
@@ -277,18 +277,18 @@ const styles = StyleSheet.create({
       height: 2,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 4,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#1e293b',
     marginBottom: 16,
   },
   description: {
     fontSize: 16,
-    color: '#34495e',
+    color: '#475569',
     lineHeight: 24,
   },
   learningPoints: {
@@ -300,13 +300,13 @@ const styles = StyleSheet.create({
   },
   bulletPoint: {
     fontSize: 16,
-    color: '#27ae60',
+    color: '#8b5cf6',
     marginRight: 8,
     marginTop: 2,
   },
   learningText: {
     fontSize: 16,
-    color: '#34495e',
+    color: '#475569',
     flex: 1,
     lineHeight: 24,
   },
@@ -318,14 +318,14 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#27ae60',
+    backgroundColor: '#8b5cf6',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
   instructorInitial: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#ffffff',
   },
   instructorInfo: {
@@ -333,30 +333,30 @@ const styles = StyleSheet.create({
   },
   instructorName: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#1e293b',
     marginBottom: 8,
   },
   instructorBio: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#64748b',
     lineHeight: 20,
   },
   enrollButton: {
-    backgroundColor: '#27ae60',
+    backgroundColor: '#8b5cf6',
     marginHorizontal: 24,
     marginTop: 30,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#8b5cf6',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   enrollButtonText: {
     color: '#ffffff',
@@ -369,9 +369,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 10,
+    marginTop: 16,
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#64748b',
+    fontWeight: '500',
   },
   errorContainer: {
     flex: 1,
@@ -380,7 +381,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#e74c3c',
+    color: '#dc2626',
+    fontWeight: '500',
   },
 });
 

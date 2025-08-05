@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { firestoreHelpers } from '../config/firebase';
@@ -41,74 +41,70 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [teacherName, setTeacherName] = useState<string>('');
+  const [courseData, setCourseData] = useState<any>(null);
+  const [teacherData, setTeacherData] = useState<any>(null);
+  const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
-    loadUserBalance();
-    loadTeacherName();
+    loadAllData();
   }, []);
 
-  // Reload balance when user changes
   useEffect(() => {
     if (user) {
-      loadUserBalance();
+      loadUserData();
     }
   }, [user]);
 
-  const loadTeacherName = async () => {
+  const loadAllData = async () => {
     try {
-      // Get the course details from Firestore to get TeacherId
+      setLoadingBalance(true);
+      
+      // Load course details
       const courses = await firestoreHelpers.queryDocuments('courses', [
         { field: 'Id', operator: '==', value: parseInt(course.id) }
       ]);
       
       if (courses.length > 0) {
-        const courseData = courses[0];
-        const teacherId = courseData.TeacherId;
+        const courseInfo = courses[0];
+        setCourseData(courseInfo);
         
-        // Get teacher name from teachers collection
-        const teachers = await firestoreHelpers.queryDocuments('teachers', [
-          { field: 'Id', operator: '==', value: teacherId }
-        ]);
-        
-        if (teachers.length > 0) {
-          const teacher = teachers[0];
-          setTeacherName(teacher.Name);
-        } else {
-          setTeacherName(`Teacher ${teacherId}`);
+        // Load teacher data
+        if ((courseInfo as any).TeacherId) {
+          const teachers = await firestoreHelpers.queryDocuments('teachers', [
+            { field: 'Id', operator: '==', value: (courseInfo as any).TeacherId }
+          ]);
+          
+          if (teachers.length > 0) {
+            setTeacherData(teachers[0]);
+            setTeacherName((teachers[0] as any).Name);
+          }
         }
-      } else {
-        setTeacherName('Unknown Teacher');
+      }
+
+      // Load user data and balance
+      if (user) {
+        await loadUserData();
       }
     } catch (error) {
-      setTeacherName('Unknown Teacher');
+      console.error('Error loading data:', error);
+    } finally {
+      setLoadingBalance(false);
     }
   };
 
-  const loadUserBalance = async () => {
+  const loadUserData = async () => {
     try {
-      setLoadingBalance(true);
+      const users = await firestoreHelpers.queryDocuments('customers', [
+        { field: 'Id', operator: '==', value: user.Id }
+      ]);
       
-      if (user) {
-        // Get the latest user data from Firestore to get current balance
-        const users = await firestoreHelpers.queryDocuments('customers', [
-          { field: 'Id', operator: '==', value: user.Id }
-        ]);
-        
-        if (users.length > 0) {
-          const currentUser = users[0];
-          const balance = currentUser.Balance || 0;
-          setUserBalance(balance);
-        } else {
-          setUserBalance(0);
-        }
-      } else {
-        setUserBalance(0);
+      if (users.length > 0) {
+        const currentUser = users[0];
+        setUserData(currentUser);
+        setUserBalance((currentUser as any).Balance || 0);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load user balance: ' + error.message);
-      setUserBalance(0);
-    } finally {
-      setLoadingBalance(false);
+      console.error('Error loading user data:', error);
     }
   };
 
@@ -130,7 +126,7 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
       return;
     }
 
-        setLoading(true);
+    setLoading(true);
     try {
       // 1. Create the course purchase record
       const purchaseData = {
@@ -143,12 +139,12 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
 
       // 3. Create transaction record
       const transactionData = {
-        Id: Date.now(), // Generate a unique ID (timestamp)
+        Id: Date.now(),
         CustomerId: user.Id,
-        Amount: course.price.toString(), // Convert to string to match your structure
-        DateTime: new Date().toISOString().split('T')[0], // Format as "YYYY-MM-DD"
+        Amount: course.price.toString(),
+        DateTime: new Date().toISOString().split('T')[0],
         PaymentMethod: paymentMethods.find(m => m.id === selectedPaymentMethod)?.label || 'Credit Card',
-        Status: true // Boolean true for successful transaction
+        Status: true
       };
 
       await firestoreHelpers.addDocument('transactions', transactionData);
@@ -161,7 +157,6 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
           Balance: newBalance
         });
       } catch (updateError) {
-        // Try alternative approach - query and update
         try {
           const users = await firestoreHelpers.queryDocuments('customers', [
             { field: 'Id', operator: '==', value: user.Id }
@@ -174,11 +169,10 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
             });
           }
         } catch (altError) {
-          // Handle error silently
+          console.error('Error updating balance:', altError);
         }
       }
 
-      // 5. Auto redirect to Courses tab after successful purchase
       navigation.navigate('MainTabs', { screen: 'Courses' });
 
     } catch (error) {
@@ -196,34 +190,12 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
     { id: 'bank_transfer', label: 'Bank Transfer', icon: '🏦' },
   ];
 
-  const renderPaymentMethod = (method: typeof paymentMethods[0]) => (
-    <TouchableOpacity
-      key={method.id}
-      style={[
-        styles.paymentMethodOption,
-        selectedPaymentMethod === method.id && styles.selectedPaymentMethodOption
-      ]}
-      onPress={() => {
-        setSelectedPaymentMethod(method.id as PaymentMethod);
-        setShowPaymentModal(false);
-      }}
-    >
-      <Text style={styles.paymentIcon}>{method.icon}</Text>
-      <Text style={[
-        styles.paymentOptionLabel,
-        selectedPaymentMethod === method.id && styles.selectedPaymentOptionLabel
-      ]}>
-        {method.label}
-      </Text>
-    </TouchableOpacity>
-  );
-
   if (loadingBalance) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#27ae60" />
-          <Text style={styles.loadingText}>Loading payment details...</Text>
+          <ActivityIndicator size="large" color="#8b5cf6" />
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -231,92 +203,98 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Modern Header */}
         <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.backButtonText}>← Back</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Purchase Course</Text>
-          </View>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backIcon}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Purchase</Text>
+          <View style={styles.headerSpacer} />
         </View>
 
-        {/* Course Details */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Course Details</Text>
-          <View style={styles.courseCard}>
-            <View style={styles.courseHeader}>
-              <View style={styles.courseTitleContainer}>
-                <Text style={styles.courseTitle}>{course.title}</Text>
-                <Text style={styles.courseInstructor}>by {teacherName || 'Loading...'}</Text>
-              </View>
-              <Text style={styles.coursePrice}>${course.price.toFixed(2)}</Text>
+        {/* Course Card */}
+        <View style={styles.courseCard}>
+          <View style={styles.courseHeader}>
+            <Text style={styles.courseTitle}>{course.title}</Text>
+            <Text style={styles.coursePrice}>${course.price}</Text>
+          </View>
+          <Text style={styles.courseInstructor}>by {teacherName || 'Loading...'}</Text>
+          <View style={styles.courseMeta}>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaLabel}>Duration</Text>
+              <Text style={styles.metaValue}>{course.duration}</Text>
             </View>
-            <View style={styles.courseInfo}>
-              <Text style={styles.courseInfoText}>⏱️ {course.duration}</Text>
-              <Text style={styles.courseInfoText}>📊 {course.level}</Text>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaLabel}>Level</Text>
+              <Text style={styles.metaValue}>{course.level}</Text>
             </View>
-            <Text style={styles.courseDescription}>{course.description}</Text>
           </View>
         </View>
 
         {/* User Balance */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Balance</Text>
-          <View style={styles.balanceCard}>
-            <View style={styles.balanceHeader}>
-              <Text style={styles.balanceLabel}>Available Balance</Text>
-              <Text style={styles.balanceAmount}>${userBalance.toFixed(2)}</Text>
-            </View>
-            {userBalance < course.price && (
-              <Text style={styles.insufficientBalance}>
-                ⚠️ Insufficient balance for this purchase
-              </Text>
-            )}
+        <View style={styles.balanceCard}>
+          <View style={styles.balanceRow}>
+            <Text style={styles.balanceLabel}>Available Balance</Text>
+            <Text style={[styles.balanceAmount, userBalance < course.price && styles.insufficientBalance]}>
+              ${userBalance.toFixed(2)}
+            </Text>
           </View>
+          {userBalance < course.price && (
+            <Text style={styles.insufficientText}>Insufficient balance</Text>
+          )}
         </View>
 
         {/* Payment Method */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
           <TouchableOpacity
-            style={styles.paymentDropdown}
+            style={styles.paymentSelector}
             onPress={() => setShowPaymentModal(true)}
           >
-            <View style={styles.paymentDropdownContent}>
+            <View style={styles.paymentSelectorContent}>
               <Text style={styles.paymentIcon}>
                 {paymentMethods.find(m => m.id === selectedPaymentMethod)?.icon}
               </Text>
-              <Text style={styles.paymentDropdownText}>
+              <Text style={styles.paymentText}>
                 {paymentMethods.find(m => m.id === selectedPaymentMethod)?.label}
               </Text>
             </View>
-            <Text style={styles.paymentDropdownArrow}>▼</Text>
+            <Text style={styles.selectorArrow}>›</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Purchase Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Purchase Summary</Text>
-          <View style={styles.summaryContainer}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Course Price:</Text>
-              <Text style={styles.summaryValue}>${course.price.toFixed(2)}</Text>
+        {/* Data Summary */}
+        <View style={styles.dataSection}>
+          <Text style={styles.sectionTitle}>Summary</Text>
+          
+          {courseData && (
+            <View style={styles.dataRow}>
+              <Text style={styles.dataLabel}>Course ID</Text>
+              <Text style={styles.dataValue}>{course.id}</Text>
             </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Payment Method:</Text>
-              <Text style={styles.summaryValue}>
-                {paymentMethods.find(m => m.id === selectedPaymentMethod)?.label}
-              </Text>
+          )}
+          
+          {teacherData && (
+            <View style={styles.dataRow}>
+              <Text style={styles.dataLabel}>Instructor</Text>
+              <Text style={styles.dataValue}>{teacherData.Name}</Text>
             </View>
-            <View style={[styles.summaryRow, styles.totalRow]}>
-              <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalValue}>${course.price.toFixed(2)}</Text>
+          )}
+          
+          {userData && (
+            <View style={styles.dataRow}>
+              <Text style={styles.dataLabel}>Customer</Text>
+              <Text style={styles.dataValue}>{userData.Name}</Text>
             </View>
+          )}
+          
+          <View style={styles.dataRow}>
+            <Text style={styles.dataLabel}>Date</Text>
+            <Text style={styles.dataValue}>{new Date().toLocaleDateString()}</Text>
           </View>
         </View>
 
@@ -334,19 +312,10 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
               <ActivityIndicator color="#ffffff" size="small" />
             ) : (
               <Text style={styles.purchaseButtonText}>
-                {userBalance < course.price ? 'Insufficient Balance' : 'Confirm Purchase'}
+                {userBalance < course.price ? 'Insufficient Balance' : 'Complete Purchase'}
               </Text>
             )}
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-
-
         </View>
       </ScrollView>
 
@@ -369,7 +338,29 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalScrollView}>
-              {paymentMethods.map(renderPaymentMethod)}
+              {paymentMethods.map((method) => (
+                <TouchableOpacity
+                  key={method.id}
+                  style={[
+                    styles.paymentMethodOption,
+                    selectedPaymentMethod === method.id && styles.selectedPaymentMethodOption
+                  ]}
+                  onPress={() => {
+                    setSelectedPaymentMethod(method.id as PaymentMethod);
+                    setShowPaymentModal(false);
+                  }}
+                >
+                  <View style={styles.paymentOptionContent}>
+                    <Text style={styles.paymentOptionIcon}>{method.icon}</Text>
+                    <Text style={[
+                      styles.paymentOptionLabel,
+                      selectedPaymentMethod === method.id && styles.selectedPaymentOptionLabel
+                    ]}>
+                      {method.label}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
           </View>
         </View>
@@ -381,191 +372,238 @@ const BuyScreen: React.FC<BuyScreenProps> = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    paddingBottom: 40,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#64748b',
+    fontWeight: '500',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingVertical: 20,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e1e8ed',
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    borderBottomColor: '#e2e8f0',
   },
   backButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e1e8ed',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  backButtonText: {
-    fontSize: 16,
-    color: '#2c3e50',
-    fontWeight: '500',
+  backIcon: {
+    fontSize: 24,
+    color: '#475569',
+    fontWeight: '300',
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#1e293b',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#7f8c8d',
-  },
-  section: {
-    backgroundColor: '#ffffff',
-    marginTop: 20,
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 16,
+  headerSpacer: {
+    width: 40,
   },
   courseCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e1e8ed',
+    backgroundColor: '#ffffff',
+    margin: 24,
+    padding: 24,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   courseHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  courseTitleContainer: {
-    flex: 1,
-    marginRight: 12,
+    marginBottom: 8,
   },
   courseTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 4,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1e293b',
+    flex: 1,
+    marginRight: 16,
+  },
+  coursePrice: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#8b5cf6',
   },
   courseInstructor: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#64748b',
+    marginBottom: 16,
   },
-  courseInfo: {
+  courseMeta: {
     flexDirection: 'row',
-    marginBottom: 12,
+    gap: 24,
   },
-  courseInfoText: {
+  metaItem: {
+    flex: 1,
+  },
+  metaLabel: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  metaValue: {
     fontSize: 14,
-    color: '#7f8c8d',
-    marginRight: 16,
-  },
-  courseDescription: {
-    fontSize: 14,
-    color: '#2c3e50',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  coursePrice: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#27ae60',
-    textAlign: 'right',
+    color: '#475569',
+    fontWeight: '500',
   },
   balanceCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#ffffff',
+    marginHorizontal: 24,
+    marginBottom: 24,
+    padding: 20,
     borderRadius: 12,
-    padding: 16,
     borderWidth: 1,
-    borderColor: '#e1e8ed',
+    borderColor: '#e2e8f0',
   },
-  balanceHeader: {
+  balanceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
   },
   balanceLabel: {
     fontSize: 14,
-    color: '#7f8c8d',
-  },
-  balanceAmount: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#27ae60',
-  },
-  insufficientBalance: {
-    fontSize: 14,
-    color: '#e74c3c',
+    color: '#64748b',
     fontWeight: '500',
   },
-
-  paymentDropdown: {
+  balanceAmount: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#8b5cf6',
+  },
+  insufficientBalance: {
+    color: '#dc2626',
+  },
+  insufficientText: {
+    fontSize: 12,
+    color: '#dc2626',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  section: {
     backgroundColor: '#ffffff',
+    marginHorizontal: 24,
+    marginBottom: 16,
+    padding: 20,
     borderRadius: 12,
-    padding: 16,
     borderWidth: 1,
-    borderColor: '#e1e8ed',
+    borderColor: '#e2e8f0',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginBottom: 16,
+  },
+  paymentSelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
-  paymentDropdownContent: {
+  paymentSelectorContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  paymentDropdownText: {
-    fontSize: 16,
-    color: '#2c3e50',
-    fontWeight: '500',
-    marginLeft: 12,
-  },
-  paymentDropdownArrow: {
-    fontSize: 16,
-    color: '#7f8c8d',
-  },
-  paymentMethodOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f3f4',
-  },
-  selectedPaymentMethodOption: {
-    backgroundColor: '#f8f9fa',
-  },
   paymentIcon: {
-    fontSize: 24,
+    fontSize: 20,
     marginRight: 12,
   },
-  paymentOptionLabel: {
+  paymentText: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#1e293b',
     fontWeight: '500',
   },
-  selectedPaymentOptionLabel: {
-    color: '#27ae60',
+  selectorArrow: {
+    fontSize: 18,
+    color: '#64748b',
+    fontWeight: '300',
+  },
+  dataSection: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 24,
+    marginBottom: 16,
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  dataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  dataLabel: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  dataValue: {
+    fontSize: 14,
+    color: '#1e293b',
+    fontWeight: '500',
+  },
+  actionContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  purchaseButton: {
+    backgroundColor: '#8b5cf6',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#8b5cf6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  disabledButton: {
+    backgroundColor: '#cbd5e1',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  purchaseButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -583,114 +621,57 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e1e8ed',
+    borderBottomColor: '#e2e8f0',
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#1e293b',
   },
   modalCloseButton: {
-    padding: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalCloseText: {
-    fontSize: 20,
-    color: '#7f8c8d',
+    fontSize: 16,
+    color: '#64748b',
+    fontWeight: '500',
   },
   modalScrollView: {
     maxHeight: 300,
   },
-  summaryContainer: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e1e8ed',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  totalRow: {
-    borderTopWidth: 1,
-    borderTopColor: '#e1e8ed',
-    marginTop: 8,
-    paddingTop: 16,
-  },
-  summaryLabel: {
-    fontSize: 16,
-    color: '#7f8c8d',
-  },
-  summaryValue: {
-    fontSize: 16,
-    color: '#2c3e50',
-    fontWeight: '500',
-  },
-  totalLabel: {
-    fontSize: 18,
-    color: '#2c3e50',
-    fontWeight: 'bold',
-  },
-  totalValue: {
-    fontSize: 18,
-    color: '#27ae60',
-    fontWeight: 'bold',
-  },
-  actionContainer: {
+  paymentMethodOption: {
+    paddingVertical: 16,
     paddingHorizontal: 24,
-    marginTop: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
   },
-  purchaseButton: {
-    backgroundColor: '#27ae60',
-    paddingVertical: 16,
-    borderRadius: 12,
+  selectedPaymentMethodOption: {
+    backgroundColor: '#f8fafc',
+  },
+  paymentOptionContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
-  disabledButton: {
-    backgroundColor: '#bdc3c7',
+  paymentOptionIcon: {
+    fontSize: 20,
+    marginRight: 12,
   },
-  purchaseButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    backgroundColor: 'transparent',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e1e8ed',
-  },
-  cancelButtonText: {
-    color: '#7f8c8d',
+  paymentOptionLabel: {
     fontSize: 16,
+    color: '#1e293b',
     fontWeight: '500',
   },
-
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#7f8c8d',
+  selectedPaymentOptionLabel: {
+    color: '#8b5cf6',
+    fontWeight: '600',
   },
 });
 

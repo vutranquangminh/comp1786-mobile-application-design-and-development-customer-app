@@ -1,6 +1,7 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -10,11 +11,9 @@ import {
     TextInput,
     TouchableOpacity,
     View,
-    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../hooks/useFirestore';
-import { addDocument } from '../config/firebase';
 
 type RootStackParamList = {
   Welcome: undefined;
@@ -36,7 +35,11 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signUp, loading, error } = useAuth();
+
+
 
   const handleSignUp = async () => {
     if (!fullName || !email || !phone || !dateOfBirth || !password || !confirmPassword) {
@@ -67,11 +70,11 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
       
       Alert.alert(
         'Success',
-        'Account created successfully!',
+        'Account created successfully! Please login with your credentials.',
         [
           {
             text: 'OK',
-            onPress: () => navigation.replace('MainTabs'),
+            onPress: () => navigation.replace('Login'),
           },
         ]
       );
@@ -104,6 +107,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your full name"
+                placeholderTextColor="#94a3b8"
                 value={fullName}
                 onChangeText={setFullName}
                 autoCapitalize="words"
@@ -115,6 +119,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your email"
+                placeholderTextColor="#94a3b8"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -128,6 +133,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your phone number"
+                placeholderTextColor="#94a3b8"
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
@@ -138,7 +144,8 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.label}>Date of Birth</Text>
               <TextInput
                 style={styles.input}
-                placeholder="MM/DD/YYYY"
+                placeholder="YYYY-MM-DD (e.g., 1990-05-15)"
+                placeholderTextColor="#94a3b8"
                 value={dateOfBirth}
                 onChangeText={setDateOfBirth}
                 keyboardType="numeric"
@@ -147,28 +154,50 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#94a3b8"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity
+                  style={styles.passwordToggle}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Text style={styles.passwordToggleText}>
+                    {showPassword ? '🙈' : '👁️'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Confirm Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Confirm your password"
+                  placeholderTextColor="#94a3b8"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity
+                  style={styles.passwordToggle}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Text style={styles.passwordToggleText}>
+                    {showConfirmPassword ? '🙈' : '👁️'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <TouchableOpacity 
@@ -196,6 +225,8 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+
     </SafeAreaView>
   );
 };
@@ -203,7 +234,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f8fafc',
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -222,18 +253,18 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#27ae60',
+    color: '#8b5cf6',
     fontWeight: '500',
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#1e293b',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#64748b',
   },
   form: {
     flex: 1,
@@ -244,33 +275,55 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2c3e50',
+    color: '#1e293b',
     marginBottom: 8,
   },
   input: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e1e8ed',
+    borderColor: '#e2e8f0',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#1e293b',
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#1e293b',
+  },
+  passwordToggle: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  passwordToggleText: {
+    fontSize: 18,
   },
   signUpButton: {
-    backgroundColor: '#27ae60',
+    backgroundColor: '#8b5cf6',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 20,
-    shadowColor: '#000',
+    shadowColor: '#8b5cf6',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   signUpButtonText: {
     color: '#ffffff',
@@ -278,13 +331,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   signUpButtonDisabled: {
-    backgroundColor: '#95a5a6',
+    backgroundColor: '#cbd5e1',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   errorText: {
-    color: '#e74c3c',
+    color: '#dc2626',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 10,
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',
@@ -293,11 +349,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#64748b',
   },
   linkText: {
     fontSize: 16,
-    color: '#27ae60',
+    color: '#8b5cf6',
     fontWeight: '600',
   },
 });

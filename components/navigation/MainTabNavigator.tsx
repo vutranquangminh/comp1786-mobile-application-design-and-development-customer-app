@@ -78,7 +78,7 @@ const MainTabNavigator: React.FC<Props> = ({ navigation }) => {
       />
       <Tab.Screen 
         name="Courses" 
-        component={CoursesScreen}
+        component={(props) => <CoursesScreen {...props} navigation={navigation} />}
         options={{
           title: 'Courses',
         }}

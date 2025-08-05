@@ -1,10 +1,10 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 export interface Course {
@@ -21,19 +21,29 @@ export interface Course {
 interface CourseCardProps {
   course: Course;
   showBuyButton?: boolean;
+  showLearnButton?: boolean;
   onBuyPress?: (course: Course) => void;
+  onLearnPress?: (course: Course) => void;
   onPress?: (course: Course) => void;
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
   course,
   showBuyButton = false,
+  showLearnButton = false,
   onBuyPress,
+  onLearnPress,
   onPress,
 }) => {
   const handleBuyPress = () => {
     if (onBuyPress) {
       onBuyPress(course);
+    }
+  };
+
+  const handleLearnPress = () => {
+    if (onLearnPress) {
+      onLearnPress(course);
     }
   };
 
@@ -59,16 +69,17 @@ const CourseCard: React.FC<CourseCardProps> = ({
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={2}>
-          {course.title}
-        </Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title} numberOfLines={1}>
+            {course.title}
+          </Text>
+          <Text style={styles.duration}>{course.duration}</Text>
+        </View>
         
-        <Text style={styles.instructor} numberOfLines={1}>
-          by {course.instructor}
-        </Text>
-        
-        <View style={styles.details}>
-          <Text style={styles.duration}>⏱ {course.duration}</Text>
+        <View style={styles.instructorRow}>
+          <Text style={styles.instructor} numberOfLines={1}>
+            by {course.instructor}
+          </Text>
           <Text style={styles.price}>${course.price}</Text>
         </View>
         
@@ -79,6 +90,12 @@ const CourseCard: React.FC<CourseCardProps> = ({
         {showBuyButton && (
           <TouchableOpacity style={styles.buyButton} onPress={handleBuyPress}>
             <Text style={styles.buyButtonText}>Buy Now</Text>
+          </TouchableOpacity>
+        )}
+
+        {showLearnButton && (
+          <TouchableOpacity style={styles.learnButton} onPress={handleLearnPress}>
+            <Text style={styles.learnButtonText}>Learn</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -123,7 +140,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: 'rgba(39, 174, 96, 0.9)',
+    backgroundColor: 'rgba(139, 92, 246, 0.9)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -137,31 +154,35 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#2c3e50',
-    marginBottom: 4,
+    flex: 1,
+    marginRight: 12,
   },
-  instructor: {
-    fontSize: 14,
-    color: '#7f8c8d',
-    marginBottom: 8,
-  },
-  details: {
+  instructorRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  duration: {
+  instructor: {
     fontSize: 14,
     color: '#7f8c8d',
+    flex: 1,
+    marginRight: 12,
   },
   price: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#27ae60',
+    color: '#8b5cf6',
   },
   description: {
     fontSize: 14,
@@ -169,12 +190,24 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   buyButton: {
-    backgroundColor: '#27ae60',
+    backgroundColor: '#8b5cf6',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
   buyButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  learnButton: {
+    backgroundColor: '#8b5cf6',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  learnButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',

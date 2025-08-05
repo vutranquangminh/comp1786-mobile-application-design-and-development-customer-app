@@ -1,13 +1,15 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { firestoreHelpers } from '../config/firebase';
@@ -43,61 +45,33 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loadingUserData, setLoadingUserData] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
 
-  // Add effect to log state changes
-  useEffect(() => {
-    console.log('🔄 userData state changed:', userData ? 'Has data' : 'No data');
-    if (userData) {
-      console.log('👤 Current userData:', JSON.stringify(userData, null, 2));
-    }
-  }, [userData]);
 
-  // Add effect to track user state changes from useAuth
-  useEffect(() => {
-    console.log('🔄 UserScreen: user from useAuth changed:', user ? `User: ${user.Name} (${user.Email})` : 'No user');
-    if (user) {
-      console.log('👤 UserScreen: Full user from useAuth:', JSON.stringify(user, null, 2));
-    }
-  }, [user]);
-
-  // Force re-render when data is loaded
-  useEffect(() => {
-    if (dataLoaded && userData) {
-      console.log('🎉 Data loaded and user available - forcing re-render');
-    }
-  }, [dataLoaded, userData]);
 
   useEffect(() => {
-    console.log('🏠 UserScreen: Component mounted/updated');
-    console.log('🏠 UserScreen: Current user from useAuth:', user ? JSON.stringify(user, null, 2) : 'No user');
     loadUserData();
   }, [user]); // Re-run when user changes
 
-  // Reload user data when user changes
-  useEffect(() => {
-    if (user) {
-      console.log('👤 User changed in UserScreen, reloading data...');
-      loadUserData();
-    }
-  }, [user]);
+  // Reload user data when screen comes into focus (e.g., returning from EditProfile)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user) {
+        loadUserData();
+      }
+    }, [user])
+  );
 
   const loadUserData = async () => {
     try {
       setLoadingUserData(true);
       setDataLoaded(false); // Reset data loaded state
-      console.log('=== STARTING USER DATA LOAD ===');
-      console.log('🔍 Current auth user:', user ? JSON.stringify(user, null, 2) : 'No user in auth state');
       
       // Wait a bit to ensure auth state is stable
       await new Promise(resolve => setTimeout(resolve, 100));
       
       // If we have a user from auth state, get latest data from database
       if (user) {
-        console.log('🔵 Using user from auth state:', JSON.stringify(user, null, 2));
-        console.log('📝 User Name:', user.Name);
-        console.log('📧 User Email:', user.Email);
-        console.log('🆔 User ID:', user.Id);
-        
         // Get the latest user data from Firestore to ensure balance is current
         try {
           const users = await firestoreHelpers.queryDocuments('customers', [
@@ -106,16 +80,11 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
           
           if (users.length > 0) {
             const latestUserData = users[0];
-            console.log('💰 Latest user data from database:', JSON.stringify(latestUserData, null, 2));
-            console.log('💰 Current balance from database:', latestUserData.Balance);
             setUserData(latestUserData);
-            console.log('✅ User data updated from database');
           } else {
-            console.log('⚠️ No user found in database, using auth state');
             setUserData(user);
           }
         } catch (error) {
-          console.log('⚠️ Failed to get latest data, using auth state');
           setUserData(user);
         }
         
@@ -124,27 +93,24 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
       }
       
       // If no user in auth state, try to get from Firestore as fallback
-      console.log('⚠️ No user in auth state, trying Firestore fallback...');
       const allUsers = await firestoreHelpers.getCollection('customers');
-      console.log('📊 Found users in Firestore:', allUsers.length);
       
-      // Try to find the user by checking recent login or session
-      // For now, we'll show an error since we can't determine which user
-      console.log('❌ Cannot determine which user to show - auth state is empty');
-      console.log('📋 Available users in Firestore:', JSON.stringify(allUsers, null, 2));
-      setDataLoaded(true);
-      return;
-      
-      
+      if (allUsers.length > 0) {
+        // For demo purposes, use the first user
+        setUserData(allUsers[0]);
+        setDataLoaded(true);
+      } else {
+        setDataLoaded(true);
+      }
     } catch (error) {
-      console.error('💥 Error loading user data:', error);
-      Alert.alert('Error', 'Failed to load user data: ' + error.message);
+      console.error('❌ Error loading user data:', error);
+      setDataLoaded(true);
     } finally {
       setLoadingUserData(false);
-      setDataLoaded(true);
-      console.log('🏁 loadUserData completed');
     }
   };
+
+
 
   const handleLogout = async () => {
     Alert.alert(
@@ -175,56 +141,7 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
-  const handleSwitchUser = async () => {
-    Alert.alert(
-      'Switch User',
-      'Choose a user to display:',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Minh (minh@gmail.com)',
-          onPress: async () => {
-            const users = await firestoreHelpers.queryDocuments('customers', [
-              { field: 'Email', operator: '==', value: 'minh@gmail.com' }
-            ]);
-            if (users.length > 0) {
-              setUserData(users[0]);
-            }
-          },
-        },
-        {
-          text: 'Bob (bob@example.com)',
-          onPress: async () => {
-            const users = await firestoreHelpers.queryDocuments('customers', [
-              { field: 'Email', operator: '==', value: 'bob@example.com' }
-            ]);
-            if (users.length > 0) {
-              setUserData(users[0]);
-            }
-          },
-        },
-        {
-          text: 'Show All Users',
-          onPress: async () => {
-            try {
-              const allUsers = await firestoreHelpers.getCollection('customers');
-              console.log('All users in app:', allUsers);
-              Alert.alert('All Users', `Found ${allUsers.length} users in database`);
-              if (allUsers.length > 0) {
-                setUserData(allUsers[0]);
-              }
-            } catch (error) {
-              console.error('Error getting all users:', error);
-              Alert.alert('Error', 'Failed to get users');
-            }
-          },
-        },
-      ]
-    );
-  };
+
 
   const renderInfoRow = (label: string, value: string) => (
     <View style={styles.infoRow}>
@@ -237,7 +154,7 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#27ae60" />
+          <ActivityIndicator size="large" color="#8b5cf6" />
           <Text style={styles.loadingText}>Loading user data...</Text>
           <Text style={styles.loadingSubtext}>
             {user ? `Logged in as: ${user.Email}` : 'No user in auth state'}
@@ -254,116 +171,10 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
   if (dataLoaded && !userData) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Profile</Text>
-            <Text style={styles.subtitle}>User data not loaded</Text>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Debug Options</Text>
-            <TouchableOpacity style={styles.settingButton} onPress={loadUserData}>
-              <Text style={styles.settingButtonText}>Refresh Data</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingButton} onPress={() => {
-              console.log('🔍 Current auth state check:');
-              console.log('👤 user from useAuth():', user ? JSON.stringify(user, null, 2) : 'No user');
-              console.log('📊 userData state:', userData ? JSON.stringify(userData, null, 2) : 'No userData');
-              console.log('📈 dataLoaded state:', dataLoaded);
-              console.log('⏳ loadingUserData state:', loadingUserData);
-              Alert.alert('Auth State', user ? 
-                `Logged in as: ${user.Name} (${user.Email})\nID: ${user.Id}` : 
-                'No user logged in'
-              );
-            }}>
-              <Text style={styles.settingButtonText}>Check Auth State</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingButton} onPress={() => {
-              console.log('🔄 Force reloading user data...');
-              setUserData(null);
-              setDataLoaded(false);
-              loadUserData();
-            }}>
-              <Text style={styles.settingButtonText}>Force Reload User Data</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingButton} onPress={async () => {
-              try {
-                console.log('🔍 Testing auth state by querying Firestore directly...');
-                const allUsers = await firestoreHelpers.getCollection('customers');
-                console.log('📊 All users in Firestore:', JSON.stringify(allUsers, null, 2));
-                
-                // Try to find the user by email (assuming they logged in as charlie@example.com)
-                const charlieUser = allUsers.find(u => u.Email === 'charlie@example.com');
-                if (charlieUser) {
-                  console.log('✅ Found Charlie in Firestore:', JSON.stringify(charlieUser, null, 2));
-                  setUserData(charlieUser);
-                  Alert.alert('Success', 'Found Charlie in Firestore and set as current user!');
-                } else {
-                  console.log('❌ Charlie not found in Firestore');
-                  Alert.alert('Not Found', 'Charlie not found in Firestore');
-                }
-              } catch (error) {
-                console.error('💥 Error testing auth state:', error);
-                Alert.alert('Error', 'Failed to test auth state: ' + error.message);
-              }
-            }}>
-              <Text style={styles.settingButtonText}>Test Auth State</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingButton} onPress={async () => {
-              try {
-                console.log('Testing Firestore connection...');
-                const allUsers = await firestoreHelpers.getCollection('customers');
-                Alert.alert('Firestore Test', `Success! Found ${allUsers.length} users in database.`);
-              } catch (error) {
-                console.error('Firestore test failed:', error);
-                Alert.alert('Firestore Test', 'Failed to connect to Firestore: ' + error.message);
-              }
-            }}>
-              <Text style={styles.settingButtonText}>Test Firestore</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingButton} onPress={() => {
-              navigation.navigate('TestFirestore');
-            }}>
-              <Text style={styles.settingButtonText}>Open Test Screen</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingButton} onPress={async () => {
-              try {
-                console.log('🔄 Manual load triggered...');
-                const allUsers = await firestoreHelpers.getCollection('customers');
-                console.log('📊 Manual load found users:', allUsers.length);
-                if (allUsers.length > 0) {
-                  const selectedUser = allUsers[0];
-                  console.log('🎯 Manually setting user:', JSON.stringify(selectedUser, null, 2));
-                  setUserData(selectedUser);
-                  console.log('✅ Manual user data set');
-                  Alert.alert('Success', 'User data loaded manually!');
-                }
-              } catch (error) {
-                console.error('💥 Manual load error:', error);
-                Alert.alert('Error', 'Failed to load user: ' + error.message);
-              }
-            }}>
-              <Text style={styles.settingButtonText}>Load User Manually</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Account Settings</Text>
-            <TouchableOpacity style={styles.settingButton}>
-              <Text style={styles.settingButtonText}>Edit Profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingButton}>
-              <Text style={styles.settingButtonText}>Change Password</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingButton}>
-              <Text style={styles.settingButtonText}>Notification Settings</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          </TouchableOpacity>
-        </ScrollView>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Unable to load user data</Text>
+          <Text style={styles.loadingSubtext}>Please try again later</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -378,119 +189,96 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Simple Header */}
         <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-                          <Text style={styles.avatarText}>
-              {userData.Name.split(' ').map(n => n[0]).join('')}
-            </Text>
+          <View style={styles.headerBackground} />
+          <View style={styles.headerContent}>
+            <View style={styles.avatarContainer}>
+              {userData.ImageUrl ? (
+                <View style={styles.avatar}>
+                  <Image
+                    source={{ uri: userData.ImageUrl }}
+                    style={styles.avatarImage}
+                    onLoadStart={() => setImageLoading(true)}
+                    onLoadEnd={() => setImageLoading(false)}
+                    onError={() => {
+                      console.log('❌ Failed to load image:', userData.ImageUrl);
+                      setImageLoading(false);
+                    }}
+                  />
+                  {imageLoading && (
+                    <View style={styles.imageLoadingOverlay}>
+                      <ActivityIndicator size="small" color="#8b5cf6" />
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {userData.Name.split(' ').map(n => n[0]).join('')}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.name}>{userData.Name}</Text>
+            <Text style={styles.memberSince}>{formatDate(userData.DateCreated)}</Text>
           </View>
         </View>
-        <Text style={styles.name}>{userData.Name}</Text>
-        <Text style={styles.memberSince}>Member since {formatDate(userData.DateCreated)}</Text>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
-        <View style={styles.infoContainer}>
-          {renderInfoRow('Full Name', userData.Name)}
-          {renderInfoRow('Email', userData.Email)}
-          {renderInfoRow('Phone', userData.PhoneNumber)}
-          {renderInfoRow('Date of Birth', userData.DateOfBirth)}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Balance</Text>
-        <View style={styles.balanceContainer}>
-          <View style={styles.balanceCard}>
+        {/* Balance Card with Transaction Button */}
+        <View style={styles.balanceCard}>
+          <View style={styles.balanceRow}>
             <Text style={styles.balanceLabel}>Available Balance</Text>
             <Text style={styles.balanceAmount}>
               ${userData.Balance ? userData.Balance.toFixed(2) : '0.00'}
             </Text>
-            <Text style={styles.balanceSubtext}>
-              Use this balance to purchase courses
-            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.transactionsButton}
+            onPress={() => {
+              (navigation as any).navigate('Transactions');
+            }}
+          >
+            <Text style={styles.transactionsButtonText}>View Transaction History</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Simple Information Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Information</Text>
+            <TouchableOpacity 
+              style={styles.editIcon}
+              onPress={() => {
+                (navigation as any).navigate('EditProfile', { userData: userData, focusPassword: false });
+              }}
+            >
+              <Text style={styles.editIconText}>✏️</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.infoContainer}>
+            {renderInfoRow('Email', userData.Email)}
+            {renderInfoRow('Phone', userData.PhoneNumber)}
+            {renderInfoRow('Birth', userData.DateOfBirth)}
           </View>
         </View>
-      </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Settings</Text>
-          <TouchableOpacity style={styles.settingButton}>
-            <Text style={styles.settingButtonText}>Edit Profile</Text>
+        {/* Simple Action Buttons */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity 
+            style={styles.changePasswordButton} 
+            onPress={() => {
+              (navigation as any).navigate('EditProfile', { userData: userData, focusPassword: true });
+            }}
+          >
+            <Text style={styles.changePasswordText}>Password</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton}>
-            <Text style={styles.settingButtonText}>Change Password</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton}>
-            <Text style={styles.settingButtonText}>Notification Settings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton} onPress={handleSwitchUser}>
-            <Text style={styles.settingButtonText}>Switch User (Demo)</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton} onPress={loadUserData}>
-            <Text style={styles.settingButtonText}>Refresh Data</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton} onPress={() => {
-            console.log('🔄 Manual refresh triggered...');
-            loadUserData();
-            Alert.alert('Refresh', 'User data refreshed!');
-          }}>
-            <Text style={styles.settingButtonText}>Refresh Balance</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton} onPress={async () => {
-            try {
-              console.log('Testing Firestore connection...');
-              const allUsers = await firestoreHelpers.getCollection('customers');
-              Alert.alert('Firestore Test', `Success! Found ${allUsers.length} users in database.`);
-            } catch (error) {
-              console.error('Firestore test failed:', error);
-              Alert.alert('Firestore Test', 'Failed to connect to Firestore: ' + error.message);
-            }
-          }}>
-            <Text style={styles.settingButtonText}>Test Firestore</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton} onPress={() => {
-            navigation.navigate('TestFirestore');
-          }}>
-            <Text style={styles.settingButtonText}>Open Test Screen</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton} onPress={async () => {
-            try {
-              console.log('💰 Testing balance functionality...');
-              if (userData) {
-                console.log('💰 Current balance:', userData.Balance);
-                Alert.alert('Balance Info', `Current balance: $${userData.Balance ? userData.Balance.toFixed(2) : '0.00'}`);
-              } else {
-                Alert.alert('No User Data', 'No user data available to check balance');
-              }
-            } catch (error) {
-              console.error('💥 Error checking balance:', error);
-              Alert.alert('Error', 'Failed to check balance: ' + (error as Error).message);
-            }
-          }}>
-            <Text style={styles.settingButtonText}>Debug: Check Balance</Text>
+
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>Logout</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support</Text>
-          <TouchableOpacity style={styles.settingButton}>
-            <Text style={styles.settingButtonText}>Help & FAQ</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton}>
-            <Text style={styles.settingButtonText}>Contact Support</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingButton}>
-            <Text style={styles.settingButtonText}>Privacy Policy</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -499,86 +287,153 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f8fafc',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   header: {
-    alignItems: 'center',
-    paddingVertical: 30,
+    position: 'relative',
+    paddingVertical: 20,
+    paddingHorizontal: 24,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e1e8ed',
-  },
-  avatarContainer: {
-    marginBottom: 16,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#27ae60',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  headerBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#8b5cf6',
+    opacity: 0.1,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  headerContent: {
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  avatarContainer: {
+    marginBottom: 12,
+  },
+  avatar: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: '#8b5cf6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#8b5cf6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 3,
+    borderColor: '#ffffff',
   },
   avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 60,
+    fontWeight: '600',
     color: '#ffffff',
+  },
+  avatarImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+  },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    borderRadius: 75,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   name: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '700',
+    color: '#1e293b',
     marginBottom: 4,
+    textAlign: 'center',
+  },
+  memberBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   memberSince: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#64748b',
+    fontWeight: '500',
   },
   section: {
     backgroundColor: '#ffffff',
-    marginTop: 20,
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    marginHorizontal: 24,
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 16,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
+  },
+  editIcon: {
+    padding: 8,
+  },
+  editIconText: {
+    fontSize: 20,
   },
   infoContainer: {
-    gap: 16,
+    gap: 8,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f3f4',
   },
   infoLabel: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#64748b',
     fontWeight: '500',
   },
   infoValue: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#1e293b',
     fontWeight: '500',
     flex: 1,
     textAlign: 'right',
@@ -590,54 +445,71 @@ const styles = StyleSheet.create({
   },
   settingButtonText: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#1e293b',
     fontWeight: '500',
   },
-  logoutButton: {
-    backgroundColor: '#e74c3c',
+  actionButtonsContainer: {
     marginHorizontal: 24,
-    marginTop: 30,
+    marginTop: 16,
+    gap: 16,
+  },
+  changePasswordButton: {
+    backgroundColor: '#8b5cf6',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#8b5cf6',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  logoutButtonText: {
+  changePasswordText: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
   },
-  balanceContainer: {
-    marginTop: 8,
+  logoutButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#8b5cf6',
+  },
+  logoutButtonText: {
+    color: '#8b5cf6',
+    fontSize: 16,
+    fontWeight: '600',
   },
   balanceCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    marginHorizontal: 24,
+    marginTop: 12,
+    marginBottom: 16,
     padding: 20,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e1e8ed',
+    borderColor: '#e2e8f0',
+    gap: 16,
+  },
+  balanceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   balanceLabel: {
     fontSize: 14,
-    color: '#7f8c8d',
-    marginBottom: 8,
+    color: '#64748b',
+    fontWeight: '500',
   },
   balanceAmount: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#27ae60',
-    marginBottom: 4,
-  },
-  balanceSubtext: {
-    fontSize: 12,
-    color: '#95a5a6',
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#8b5cf6',
   },
   loadingContainer: {
     flex: 1,
@@ -645,14 +517,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 10,
+    marginTop: 16,
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#64748b',
+    fontWeight: '500',
   },
   loadingSubtext: {
     marginTop: 5,
     fontSize: 14,
-    color: '#95a5a6',
+    color: '#94a3b8',
     textAlign: 'center',
   },
   errorContainer: {
@@ -662,17 +535,37 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#e74c3c',
+    color: '#dc2626',
+    fontWeight: '500',
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontWeight: '600',
+    color: '#1e293b',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#64748b',
+  },
+  transactionsButton: {
+    backgroundColor: '#8b5cf6',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#8b5cf6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  transactionsButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
