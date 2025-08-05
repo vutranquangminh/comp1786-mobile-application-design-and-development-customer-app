@@ -1,343 +1,317 @@
-# Yoga Customer App
+# 🧘‍♀️ Yoga Customer App
 
-A React Native yoga app with Firebase Firestore integration for managing courses and user data.
+A comprehensive React Native yoga platform built with Expo and Firebase Firestore, featuring user authentication, course management, teacher booking, and transaction tracking.
 
-## Features
+## ✨ Features
 
-- **Firebase Firestore Integration**: Real-time database for courses and user data
-- **Authentication**: User sign-up and sign-in functionality
-- **Course Management**: Browse, add, update, and delete yoga courses
-- **Modern UI**: Beautiful, responsive design with smooth animations
-- **Cross-platform**: Works on iOS, Android, and Web
+### 🔐 Authentication & User Management
+- **User Registration**: Complete sign-up with profile information
+- **User Login**: Secure email/password authentication
+- **Profile Management**: Edit profile, change password, update profile picture
+- **Account Balance**: Track and manage user account funds
+- **Transaction History**: View all purchase and balance update history
 
-## Firebase Setup
+### 📚 Course Management
+- **Course Discovery**: Browse available yoga courses
+- **Course Filtering**: Search by title, instructor, description, or level
+- **Course Types**: Public classes and private sessions
+- **Purchase System**: Buy courses with account balance
+- **Learning Interface**: Access purchased courses for learning
 
-This app is configured to use Firebase Firestore with the following services:
-- **Firestore Database**: For storing course and user data
-- **Authentication**: For user management
-- **Real-time updates**: Automatic data synchronization
+### 👨‍🏫 Teacher Management
+- **Teacher Directory**: Browse available yoga teachers
+- **Teacher Profiles**: View teacher information and experience
+- **Private Booking**: Book private sessions with teachers
+- **Teacher Search**: Filter teachers by name or experience
 
-### Configuration
+### 💰 Financial Features
+- **Account Balance**: Add funds to your account
+- **Purchase Tracking**: Complete transaction history
+- **Payment Methods**: Multiple payment options for purchases
+- **Balance Updates**: Add money to account with transaction records
 
-The Firebase configuration is located in `config/firebase.ts` and includes:
-- Firestore database connection
-- Authentication setup
-- Helper functions for CRUD operations
+### 🎨 Modern UI/UX
+- **Purple Theme**: Consistent purple and white color scheme
+- **Responsive Design**: Works on iOS, Android, and Web
+- **Smooth Navigation**: Stack and tab navigation
+- **Loading States**: Proper loading indicators and error handling
+- **Modern Components**: Reusable card components and clean layouts
 
-## Getting Started
+## 🏗️ Architecture
+
+### Tech Stack
+- **React Native** with Expo
+- **TypeScript** for type safety
+- **Firebase Firestore** for backend database
+- **React Navigation** for navigation
+- **AsyncStorage** for local persistence
+
+### Project Structure
+```
+yogacustomerapp/
+├── App.tsx                          # Main app component
+├── screens/                         # Screen components
+│   ├── WelcomeScreen.tsx           # Welcome/introduction
+│   ├── LoginScreen.tsx             # User authentication
+│   ├── SignUpScreen.tsx            # User registration
+│   ├── HomeScreen.tsx              # Course/Teacher discovery
+│   ├── CoursesScreen.tsx           # Purchased courses
+│   ├── BuyScreen.tsx               # Purchase interface
+│   ├── UserScreen.tsx              # User profile
+│   ├── EditProfileScreen.tsx       # Profile editing
+│   ├── TransactionScreen.tsx       # Transaction history
+│   ├── CourseDetailScreen.tsx      # Course details
+│   └── TestFirestoreScreen.tsx     # Development testing
+├── components/                      # Reusable components
+│   ├── CourseCard.tsx              # Course display
+│   ├── TeacherCard.tsx             # Teacher display
+│   └── navigation/                 # Navigation
+│       ├── RootStackNavigator.tsx  # Main stack
+│       └── MainTabNavigator.tsx    # Bottom tabs
+├── config/
+│   └── firebase.ts                 # Firebase configuration
+├── hooks/
+│   ├── useFirestore.ts             # Firestore operations
+│   └── useAuth.ts                  # Authentication
+├── scripts/                        # Database scripts
+│   ├── createTestUser.js           # Create test users
+│   ├── seedFirestore.js            # Seed database
+│   └── reset-project.js            # Reset project
+└── constants/
+    └── Colors.ts                   # Color definitions
+```
+
+## 🚀 Getting Started
 
 ### Prerequisites
-
 - Node.js (v16 or higher)
-- Expo CLI
+- Expo CLI (`npm install -g @expo/cli`)
 - Firebase project with Firestore enabled
 
 ### Installation
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd yogacustomerapp
-```
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd yoyacustomerapp
+   ```
 
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Seed the database with sample data:
-```bash
-npm run seed-firestore
-```
-
-4. Start the development server:
-```bash
-npm start
-```
-
-## Database Structure
-
-### Collections
-
-#### `courses`
-Stores yoga course information:
-```typescript
-{
-  id: string;
-  title: string;
-  instructor: string;
-  duration: string;
-  level: string;
-  price: number;
-  description: string;
-  createdAt: Date;
-}
-```
-
-## Usage
-
-### Firestore Operations
-
-The app provides custom hooks for easy Firestore operations:
-
-#### `useFirestore()` Hook
-```typescript
-const { 
-  loading, 
-  error, 
-  getCollection, 
-  addDocument, 
-  updateDocument, 
-  deleteDocument,
-  queryDocuments 
-} = useFirestore();
-
-// Get all courses
-const courses = await getCollection('courses');
-
-// Add a new course
-const courseId = await addDocument('courses', courseData);
-
-// Update a course
-await updateDocument('courses', courseId, updatedData);
-
-// Delete a course
-await deleteDocument('courses', courseId);
-
-// Query courses with filters
-const filteredCourses = await queryDocuments('courses', [
-  { field: 'level', operator: '==', value: 'Beginner' }
-], 'createdAt', 10);
-```
-
-#### `useAuth()` Hook
-```typescript
-const { 
-  user, 
-  loading, 
-  signUp, 
-  signIn, 
-  signOut 
-} = useAuth();
-
-// Sign up
-await signUp(email, password);
-
-// Sign in
-await signIn(email, password);
-
-// Sign out
-await signOut();
-```
-
-### Example Component
-
-See `components/FirestoreExample.tsx` for a complete example of how to use Firestore operations in your components.
-
-## Available Scripts
-
-- `npm start` - Start the Expo development server
-- `npm run android` - Start on Android
-- `npm run ios` - Start on iOS
-- `npm run web` - Start on Web
-- `npm run seed-firestore` - Seed the database with sample data
-- `npm run reset-project` - Reset the project to initial state
-
-## Project Structure
-
-```
-yogacustomerapp/
-├── config/
-│   └── firebase.ts          # Firebase configuration and helpers
-├── hooks/
-│   ├── useFirestore.ts      # Firestore custom hook
-│   └── useColorScheme.ts    # Theme hook
-├── components/
-│   ├── FirestoreExample.tsx # Example Firestore usage
-│   └── ...                  # Other components
-├── screens/
-│   ├── cccCoursesScreen.tsx    # Updated to use Firestore
-│   └── ...                  # Other screens
-└── scripts/
-    └── seedFirestore.js     # Database seeding script
-```
-
-## Security Rules
-
-Make sure to set up proper Firestore security rules in your Firebase console:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /courses/{courseId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-A React Native application built with Expo that provides a comprehensive yoga course platform with user authentication and course management.
-
-## Features
-
-- **Two-Level Navigation Structure**
-  - Stack Navigator for authentication flow (Welcome, Login, SignUp)
-  - Bottom Tab Navigator for main app screens (Home, Courses, Profile)
-
-- **Authentication Flow**
-  - Welcome screen with app introduction
-  - Login screen with email/password authentication
-  - Sign up screen with comprehensive user registration
-  - Automatic navigation to main app after successful authentication
-
-- **Course Management**
-  - Home screen displays unpurchased courses with "Buy" buttons
-  - Courses screen shows all available courses for browsing
-  - Reusable CourseCard component for consistent course display
-  - Purchase functionality with confirmation dialogs
-
-- **User Profile**
-  - User information display (name, email, phone, date of birth)
-  - Account settings and support options
-  - Logout functionality that resets navigation to welcome screen
-
-## Project Structure
-
-```
-yogaclientapp/
-├── App.tsx                          # Main app component
-├── index.js                         # App entry point
-├── screens/                         # Screen components
-│   ├── WelcomeScreen.tsx           # Welcome/introduction screen
-│   ├── LoginScreen.tsx             # User login screen
-│   ├── SignUpScreen.tsx            # User registration screen
-│   ├── HomeScreen.tsx              # Home screen with unpurchased courses
-│   ├── CoursesScreen.tsx           # All courses browsing screen
-│   └── UserScreen.tsx              # User profile screen
-├── components/                      # Reusable components
-│   ├── CourseCard.tsx              # Course display component
-│   └── navigation/                 # Navigation components
-│       ├── RootStackNavigator.tsx  # Main stack navigator
-│       └── MainTabNavigator.tsx    # Bottom tab navigator
-└── package.json                    # Dependencies and scripts
-```
-
-## Navigation Flow
-
-1. **Welcome Screen** - App introduction with Sign In/Sign Up buttons
-2. **Login/SignUp Screens** - Authentication flow (no bottom tabs)
-3. **Main App** - Bottom tab navigation with:
-   - **Home** - Unpurchased courses with buy functionality
-   - **Courses** - All available courses for browsing
-   - **Profile** - User information and settings
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-- Expo CLI (`npm install -g @expo/cli`)
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. Start the development server:
+3. **Set up Firebase**
+   - Create a Firebase project
+   - Enable Firestore Database
+   - Update `config/firebase.ts` with your Firebase config
+
+4. **Seed the database**
+   ```bash
+   npm run seed-firestore
+   npm run create-test-user
+   ```
+
+5. **Start the development server**
    ```bash
    npm start
    ```
 
-4. Run on your preferred platform:
-   - iOS: `npm run ios`
-   - Android: `npm run android`
-   - Web: `npm run web`
+6. **Run on your preferred platform**
+   ```bash
+   # iOS
+   npm run ios
+   
+   # Android
+   npm run android
+   
+   # Web
+   npm run web
+   ```
 
-## Demo Credentials
+## 📊 Database Structure
 
-For testing the login functionality:
-- Email: `user@example.com`
-- Password: `password`
+### Collections
 
-## Key Features
-
-### Course Management
-- **Home Screen**: Shows courses the user hasn't purchased yet
-- **Courses Screen**: Displays all available courses
-- **Purchase Flow**: Confirmation dialog and course removal after purchase
-
-### User Experience
-- Clean, modern UI design
-- Smooth navigation transitions
-- Responsive design for different screen sizes
-- Loading states and error handling
-
-### Technical Implementation
-- TypeScript for type safety
-- React Navigation for navigation management
-- Expo for cross-platform development
-- Modular component architecture
-- Reusable components (CourseCard)
-
-## Customization
-
-### Adding New Courses
-Edit the mock data in `screens/HomeScreen.tsx` and `screens/CoursesScreen.tsx`:
-
+#### `customers`
+User account information:
 ```typescript
-const mockCourses: Course[] = [
-  {
-    id: 'unique-id',
-    title: 'Course Title',
-    instructor: 'Instructor Name',
-    duration: '45 min',
-    level: 'Beginner',
-    price: 29.99,
-    description: 'Course description...',
-  },
-  // ... more courses
-];
+{
+  Id: number;
+  Email: string;
+  Password: string;
+  Name: string;
+  PhoneNumber: string;
+  DateOfBirth: string;
+  DateCreated: string;
+  ImageUrl: string | null;
+  Balance: number;
+}
 ```
 
+#### `courses`
+Yoga course information:
+```typescript
+{
+  Id: number;
+  Name: string;
+  Description: string;
+  Price: string;
+  Duration: number;
+  Category: string;
+  TeacherId: number;
+}
+```
+
+#### `teachers`
+Teacher information:
+```typescript
+{
+  Id: number;
+  Name: string;
+  Experience: string;
+  Specialization: string;
+  ImageUrl: string;
+}
+```
+
+#### `transactions`
+Purchase and balance update records:
+```typescript
+{
+  Id: string;
+  CustomerId: number;
+  Amount: number;
+  DateTime: string;
+  PaymentMethod: string;
+  Status: string;
+}
+```
+
+#### `course_customer_crossrefs`
+Course purchase relationships:
+```typescript
+{
+  customerId: number;
+  courseId: number;
+}
+```
+
+## 🎯 Key Features Explained
+
+### Authentication Flow
+1. **Welcome Screen** → App introduction with Sign In/Sign Up options
+2. **Login/SignUp** → User authentication with Firebase
+3. **Main App** → Bottom tab navigation with Home, Courses, and Profile
+
+### Course Management
+- **Home Screen**: Shows unpurchased courses and teachers
+- **Courses Screen**: Displays purchased courses with "Learn" buttons
+- **Course Types**: Toggle between Public and Private classes
+- **Search & Filter**: Find courses by title, instructor, or description
+
+### User Profile
+- **Account Balance**: View and manage funds
+- **Profile Editing**: Update personal information and password
+- **Transaction History**: View all purchases and balance updates
+- **Profile Picture**: Upload custom profile images via URL
+
+### Purchase System
+- **Buy Screen**: Complete purchase interface with payment methods
+- **Balance Management**: Add funds to account
+- **Transaction Tracking**: Complete history of all financial activities
+
+## 🛠️ Available Scripts
+
+```bash
+# Development
+npm start              # Start Expo development server
+npm run android        # Run on Android
+npm run ios           # Run on iOS
+npm run web           # Run on Web
+
+# Database Management
+npm run seed-firestore    # Seed database with sample data
+npm run create-test-user  # Create test user account
+npm run reset-project     # Reset project to initial state
+
+# Code Quality
+npm run lint           # Run ESLint
+```
+
+## 🎨 UI/UX Features
+
+### Color Scheme
+- **Primary**: `#8b5cf6` (Purple)
+- **Secondary**: `#059669` (Green for success actions)
+- **Background**: `#f8fafc` (Light gray)
+- **Text**: `#1e293b` (Dark gray)
+
+### Navigation Structure
+```
+Welcome Screen
+├── Login Screen
+├── Sign Up Screen
+└── Main App (Tab Navigation)
+    ├── Home Screen
+    │   ├── Course Tab
+    │   └── Teacher Tab
+    ├── Courses Screen
+    │   ├── Public Classes
+    │   └── Private Classes
+    └── User Screen
+        ├── Edit Profile
+        ├── Change Password
+        └── Transaction History
+```
+
+## 🔧 Customization
+
+### Adding New Features
+1. **New Screens**: Add to `screens/` directory
+2. **New Components**: Add to `components/` directory
+3. **Database Changes**: Update Firestore collections and helper functions
+4. **Navigation**: Update navigation types and routes
+
 ### Styling
-The app uses a consistent color scheme:
-- Primary: `#27ae60` (green)
-- Secondary: `#2c3e50` (dark blue)
-- Background: `#f8f9fa` (light gray)
-- Text: `#7f8c8d` (gray)
+- Consistent purple theme throughout the app
+- Modern card-based layouts
+- Responsive design for all screen sizes
+- Loading states and error handling
 
-## Future Enhancements
+## 🚀 Deployment
 
-- Firebase Authentication integration
-- Real backend API integration
-- Course video streaming
-- User progress tracking
-- Push notifications
-- Offline support
-- Payment gateway integration
+### Expo Build
+```bash
+# Build for production
+expo build:android
+expo build:ios
+```
 
-## License
+### Firebase Deployment
+1. Configure Firebase project
+2. Set up Firestore security rules
+3. Deploy to Firebase hosting (for web)
 
-This project is licensed under the MIT License.
-# yoyacustomerapp
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with React Native and Expo
+- Powered by Firebase Firestore
+- Icons and emojis for visual elements
+- Modern UI/UX design principles
+
+---
+
+**Made with ❤️ for the yoga community**
