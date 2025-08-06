@@ -199,33 +199,37 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
           style={styles.header}
         >
           <View style={styles.headerContent}>
-            <View style={styles.avatarContainer}>
-              {userData.ImageUrl ? (
-                <View style={styles.avatar}>
-                  <Image
-                    source={{ uri: userData.ImageUrl }}
-                    style={styles.avatarImage}
-                    onLoadStart={() => setImageLoading(true)}
-                    onLoadEnd={() => setImageLoading(false)}
-                    onError={() => {
-                      console.log('❌ Failed to load image:', userData.ImageUrl);
-                      setImageLoading(false);
-                    }}
-                  />
-                  {imageLoading && (
-                    <View style={styles.imageLoadingOverlay}>
-                      <ActivityIndicator size="small" color={ModernColors.text.inverse} />
-                    </View>
-                  )}
-                </View>
-              ) : (
-                <View style={styles.avatar}>
-                  <Ionicons name="person" size={48} color={ModernColors.text.inverse} />
-                </View>
-              )}
+            <View style={styles.userCard}>
+              <View style={styles.avatarContainer}>
+                {userData.ImageUrl ? (
+                  <View style={styles.avatar}>
+                    <Image
+                      source={{ uri: userData.ImageUrl }}
+                      style={styles.avatarImage}
+                      onLoadStart={() => setImageLoading(true)}
+                      onLoadEnd={() => setImageLoading(false)}
+                      onError={() => {
+                        console.log('❌ Failed to load image:', userData.ImageUrl);
+                        setImageLoading(false);
+                      }}
+                    />
+                    {imageLoading && (
+                      <View style={styles.imageLoadingOverlay}>
+                        <ActivityIndicator size="small" color={ModernColors.text.inverse} />
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.avatar}>
+                    <Ionicons name="person" size={48} color={ModernColors.text.inverse} />
+                  </View>
+                )}
+              </View>
+              <View style={styles.userInfo}>
+                <Text style={styles.name}>{userData.Name}</Text>
+                <Text style={styles.memberSince}>Birth: {userData.DateOfBirth}</Text>
+              </View>
             </View>
-            <Text style={styles.name}>{userData.Name}</Text>
-            <Text style={styles.memberSince}>Member since {formatDate(userData.DateCreated)}</Text>
           </View>
         </LinearGradient>
 
@@ -288,8 +292,8 @@ const UserScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.infoIconContainer}>
                 <Ionicons name="calendar" size={16} color={ModernColors.text.tertiary} />
               </View>
-              <Text style={styles.infoLabel}>Birth</Text>
-              <Text style={styles.infoValue}>{userData.DateOfBirth}</Text>
+              <Text style={styles.infoLabel}>Member Since</Text>
+              <Text style={styles.infoValue}>{formatDate(userData.DateCreated)}</Text>
             </View>
           </View>
         </View>
@@ -333,7 +337,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   header: {
-    paddingVertical: 40,
+    paddingVertical: 24,
     paddingHorizontal: 24,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
@@ -346,13 +350,21 @@ const styles = StyleSheet.create({
   headerContent: {
     alignItems: 'center',
   },
+  userCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 16,
+    borderRadius: 16,
+    width: '100%',
+  },
   avatarContainer: {
-    marginBottom: 16,
+    marginRight: 16,
   },
   avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -365,9 +377,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   avatarImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
   imageLoadingOverlay: {
     position: 'absolute',
@@ -376,16 +388,19 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 60,
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  userInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   name: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: ModernColors.text.inverse,
     marginBottom: 4,
-    textAlign: 'center',
   },
   memberSince: {
     fontSize: 14,

@@ -1,14 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { ModernColors } from '../../constants/Colors';
 import CoursesScreen from '../../screens/CoursesScreen';
 import HomeScreen from '../../screens/HomeScreen';
 import UserScreen from '../../screens/UserScreen';
-import { ModernColors } from '../../constants/Colors';
 
 export type MainTabParamList = {
   Home: undefined;
@@ -116,10 +115,10 @@ const styles = {
   },
   activeIndicator: {
     position: 'absolute' as const,
-    bottom: -8,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    top: -8,
+    width: 30,
+    height: 3,
+    borderRadius: 1.5,
     backgroundColor: ModernColors.primary.main,
   },
 };

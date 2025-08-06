@@ -24,8 +24,10 @@ export interface Course {
 interface CourseCardProps {
   course: Course;
   showBuyButton?: boolean;
+  showViewDetailsButton?: boolean;
   showLearnButton?: boolean;
   onBuyPress?: (course: Course) => void;
+  onViewDetailsPress?: (course: Course) => void;
   onLearnPress?: (course: Course) => void;
   onPress?: (course: Course) => void;
 }
@@ -33,14 +35,22 @@ interface CourseCardProps {
 const CourseCard: React.FC<CourseCardProps> = ({
   course,
   showBuyButton = false,
+  showViewDetailsButton = false,
   showLearnButton = false,
   onBuyPress,
+  onViewDetailsPress,
   onLearnPress,
   onPress,
 }) => {
   const handleBuyPress = () => {
     if (onBuyPress) {
       onBuyPress(course);
+    }
+  };
+
+  const handleViewDetailsPress = () => {
+    if (onViewDetailsPress) {
+      onViewDetailsPress(course);
     }
   };
 
@@ -98,6 +108,17 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 style={styles.buyButtonGradient}
               >
                 <Text style={styles.buyButtonText}>Buy</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+          {showViewDetailsButton && (
+            <TouchableOpacity style={styles.viewDetailsButton} onPress={handleViewDetailsPress}>
+              <LinearGradient
+                colors={[ModernColors.primary.main, ModernColors.primary.dark]}
+                style={styles.viewDetailsButtonGradient}
+              >
+                <Text style={styles.viewDetailsButtonText}>View Details</Text>
               </LinearGradient>
             </TouchableOpacity>
           )}
@@ -238,6 +259,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   learnButtonText: {
+    color: ModernColors.text.inverse,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  viewDetailsButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: ModernColors.primary.main,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  viewDetailsButtonGradient: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  viewDetailsButtonText: {
     color: ModernColors.text.inverse,
     fontSize: 16,
     fontWeight: '700',

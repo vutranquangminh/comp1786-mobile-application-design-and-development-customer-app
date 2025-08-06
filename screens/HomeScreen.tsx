@@ -236,8 +236,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, [searchQuery, unpurchasedCourses, teachers, selectedTab]);
 
-  const handleBuyPress = (course: Course) => {
-    navigation.navigate('Buy', { course });
+  const handleViewDetails = (course: Course) => {
+    navigation.navigate('CourseDetail', { courseId: course.id, course });
   };
 
   const handleBookPress = (teacher: Teacher) => {
@@ -363,8 +363,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 <CourseCard
                   key={course.id}
                   course={course}
-                  showBuyButton={true}
-                  onBuyPress={handleBuyPress}
+                  showViewDetailsButton={true}
+                  onViewDetailsPress={handleViewDetails}
                 />
               ))}
             </View>

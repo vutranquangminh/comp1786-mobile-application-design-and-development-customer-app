@@ -15,7 +15,7 @@ export type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
   MainTabs: undefined;
-  CourseDetail: { courseId: string };
+  CourseDetail: { courseId: string; course: any };
   Buy: { course: any };
   EditProfile: { userData: any; focusPassword?: boolean };
   TestFirestore: undefined;
