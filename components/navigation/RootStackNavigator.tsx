@@ -15,7 +15,7 @@ export type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
   MainTabs: undefined;
-  CourseDetail: { courseId: string; course: any };
+  CourseDetail: { courseId: string; course?: any };
   Buy: { course: any };
   EditProfile: { userData: any; focusPassword?: boolean };
   TestFirestore: undefined;
@@ -64,11 +64,12 @@ const RootStackNavigator: React.FC = () => {
       />
       <Stack.Screen 
         name="MainTabs" 
-        component={(props) => <MainTabNavigator {...props} />}
         options={{
           gestureEnabled: false,
         }}
-      />
+      >
+        {(props) => <MainTabNavigator {...props} />}
+      </Stack.Screen>
       <Stack.Screen 
         name="CourseDetail" 
         component={CourseDetailScreen}

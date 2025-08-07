@@ -55,6 +55,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   const handleLearnPress = () => {
+    console.log('Learn button pressed in CourseCard');
     if (onLearnPress) {
       onLearnPress(course);
     }
@@ -67,8 +68,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.8}>
-      <View style={styles.imageContainer}>
+    <View style={styles.card}>
+      <TouchableOpacity style={styles.imageContainer} onPress={handlePress} activeOpacity={0.8}>
         {course.imageUrl ? (
           <Image source={{ uri: course.imageUrl }} style={styles.image} />
         ) : (
@@ -82,7 +83,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         <View style={styles.levelBadge}>
           <Text style={styles.levelText}>{course.level}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={2}>
@@ -135,7 +136,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 

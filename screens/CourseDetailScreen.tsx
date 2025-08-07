@@ -20,7 +20,7 @@ type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
   MainTabs: undefined;
-  CourseDetail: { courseId: string; course: any };
+  CourseDetail: { courseId: string; course?: any };
   Buy: { course: any };
 };
 
@@ -28,7 +28,7 @@ type CourseDetailScreenNavigationProp = StackNavigationProp<RootStackParamList, 
 
 interface Props {
   navigation: CourseDetailScreenNavigationProp;
-  route: { params: { courseId: string; course: any } };
+  route: { params: { courseId: string; course?: any } };
 }
 
 interface Teacher {
@@ -47,6 +47,7 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [courseData, setCourseData] = useState<any>(null);
   const [loadingTeacher, setLoadingTeacher] = useState(true);
+  const [displayCourse, setDisplayCourse] = useState<any>(course);
 
   useEffect(() => {
     loadCourseAndTeacherData();
@@ -65,6 +66,19 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         const courseInfo = courses[0];
         setCourseData(courseInfo);
         
+        // Update display course with Firestore data if course object is not available
+        if (!displayCourse) {
+          setDisplayCourse({
+            id: courseInfo.Id.toString(),
+            title: courseInfo.Name,
+            instructor: 'Loading...', // Will be updated when teacher loads
+            duration: `${courseInfo.Duration} min`,
+            level: courseInfo.Category || 'All Levels',
+            price: parseFloat(courseInfo.Price.replace('$', '')) || 0,
+            description: courseInfo.Description,
+          });
+        }
+        
         // Load teacher data
         if (courseInfo.TeacherId) {
           const teachers = await firestoreHelpers.queryDocuments('teachers', [
@@ -73,7 +87,7 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           
           if (teachers.length > 0) {
             const teacherInfo = teachers[0];
-            setTeacher({
+            const teacherData = {
               id: teacherInfo.Id.toString(),
               name: teacherInfo.Name,
               experience: teacherInfo.Experience,
@@ -81,7 +95,16 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               bio: teacherInfo.Bio || 'Experienced yoga instructor with a passion for helping students achieve their wellness goals.',
               specialties: teacherInfo.Specialties ? teacherInfo.Specialties.split(', ') : ['Vinyasa', 'Hatha', 'Meditation'],
               certifications: teacherInfo.Certifications ? teacherInfo.Certifications.split(', ') : ['RYT-200', 'Yoga Alliance Certified']
-            });
+            };
+            setTeacher(teacherData);
+            
+            // Update display course with teacher name
+            if (displayCourse && displayCourse.instructor === 'Loading...') {
+              setDisplayCourse(prev => ({
+                ...prev,
+                instructor: teacherData.name
+              }));
+            }
           }
         }
       }
@@ -93,10 +116,10 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleBuyPress = () => {
-    navigation.navigate('Buy', { course });
+    navigation.navigate('Buy', { course: displayCourse });
   };
 
-  if (loading || loadingTeacher) {
+  if (loading || loadingTeacher || !displayCourse) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
@@ -145,20 +168,20 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               <View style={styles.heroIconContainer}>
                 <Ionicons name="flower" size={48} color={ModernColors.text.inverse} />
               </View>
-              <Text style={styles.courseTitle}>{course.title}</Text>
-              <Text style={styles.courseInstructor}>by {course.instructor}</Text>
+              <Text style={styles.courseTitle}>{displayCourse.title}</Text>
+              <Text style={styles.courseInstructor}>by {displayCourse.instructor}</Text>
               <View style={styles.courseMeta}>
                 <View style={styles.metaItem}>
                   <Ionicons name="time" size={16} color={ModernColors.text.inverse} />
-                  <Text style={styles.metaText}>{course.duration}</Text>
+                  <Text style={styles.metaText}>{displayCourse.duration}</Text>
                 </View>
                 <View style={styles.metaItem}>
                   <Ionicons name="flower" size={16} color={ModernColors.text.inverse} />
-                  <Text style={styles.metaText}>{course.level}</Text>
+                  <Text style={styles.metaText}>{displayCourse.level}</Text>
                 </View>
                 <View style={styles.metaItem}>
                   <Ionicons name="card" size={16} color={ModernColors.text.inverse} />
-                  <Text style={styles.metaText}>${course.price}</Text>
+                  <Text style={styles.metaText}>${displayCourse.price}</Text>
                 </View>
               </View>
             </View>
@@ -168,7 +191,7 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* Course Description */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About This Course</Text>
-          <Text style={styles.description}>{course.description}</Text>
+          <Text style={styles.description}>{displayCourse.description}</Text>
         </View>
 
         {/* What You'll Learn */}
@@ -255,7 +278,7 @@ const CourseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.buyButtonGradient}
           >
             <Ionicons name="card" size={20} color={ModernColors.text.inverse} />
-            <Text style={styles.buyButtonText}>Buy Course - ${course.price}</Text>
+            <Text style={styles.buyButtonText}>Buy Course - ${displayCourse.price}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>

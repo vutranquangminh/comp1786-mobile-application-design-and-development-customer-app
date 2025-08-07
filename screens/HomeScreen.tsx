@@ -24,7 +24,7 @@ type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
   MainTabs: undefined;
-  CourseDetail: { courseId: string };
+  CourseDetail: { courseId: string; course?: any };
   Buy: { course: any };
   TestFirestore: undefined;
 };

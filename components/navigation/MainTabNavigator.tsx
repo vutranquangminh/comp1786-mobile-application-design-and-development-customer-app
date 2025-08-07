@@ -22,7 +22,7 @@ type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
   MainTabs: undefined;
-  CourseDetail: { courseId: string };
+  CourseDetail: { courseId: string; course?: any };
   Buy: { course: any };
   TestFirestore: undefined;
 };
@@ -84,18 +84,20 @@ const MainTabNavigator: React.FC<Props> = ({ navigation }) => {
     >
       <Tab.Screen 
         name="Home" 
-        component={(props) => <HomeScreen {...props} navigation={navigation} />}
         options={{
           title: 'Home',
         }}
-      />
+      >
+        {(props) => <HomeScreen {...props} navigation={navigation} />}
+      </Tab.Screen>
       <Tab.Screen 
         name="Courses" 
-        component={(props) => <CoursesScreen {...props} navigation={navigation} />}
         options={{
           title: 'Courses',
         }}
-      />
+      >
+        {(props) => <CoursesScreen {...props} navigation={navigation} />}
+      </Tab.Screen>
       <Tab.Screen 
         name="User" 
         component={UserScreen}

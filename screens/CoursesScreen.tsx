@@ -19,7 +19,7 @@ import { ModernColors } from '../constants/Colors';
 import { useAuth, useFirestore } from '../hooks/useFirestore';
 
 type RootStackParamList = {
-  CourseDetail: { courseId: string };
+  CourseDetail: { courseId: string; course?: any };
 };
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -279,10 +279,11 @@ const CoursesScreen: React.FC<Props> = ({ navigation }) => {
                 showLearnButton={true}
                 onLearnPress={(course) => {
                   // Navigate to course learning interface
-                  navigation.navigate('CourseDetail', { courseId: course.id });
+                  console.log('Learn button pressed for course:', course);
+                  navigation.navigate('CourseDetail', { courseId: course.id, course });
                 }}
                 onPress={(course) => {
-                  navigation.navigate('CourseDetail', { courseId: course.id });
+                  navigation.navigate('CourseDetail', { courseId: course.id, course });
                 }}
               />
             ))}
