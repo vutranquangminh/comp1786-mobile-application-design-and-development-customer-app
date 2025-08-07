@@ -1,6 +1,16 @@
-# 🧘‍♀️ Lotus Yoga App
+# 🧘‍♀️ Lotus Yoga App Customer
 
 A React Native mobile app for yoga studio management built with Expo and Firebase.
+
+## 👨‍💻 Author Information
+
+**Author:** Vũ Trần Quang Minh  
+**Greenwich UK Student ID:** 001325733  
+**FPT Greenwich Student ID:** GCS220006  
+**Class:** COS1103  
+**Subject:** COMP1786 - Mobile Application Design and Development  
+**Contact:** minhvtqgcs220006@fpt.edu.vn  
+**Github:** vutranquangminh
 
 ## ✨ Features
 
@@ -90,3 +100,5 @@ npm run seed-firestore # Seed database
 ---
 
 **Built with ❤️ using React Native, Expo, and Firebase**
+
+---
