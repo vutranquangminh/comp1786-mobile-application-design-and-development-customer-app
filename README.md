@@ -1,4 +1,4 @@
-# 🧘‍♀️ Lotus Yoga App Customer
+# 🧘‍♀️ Yoga Customer App
 
 A React Native mobile app for yoga studio management built with Expo and Firebase.
 
